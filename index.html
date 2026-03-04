@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>🐱 Purrfect Merge!</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -11,60 +11,61 @@
 
 body {
 background: linear-gradient(135deg,#ffecd2 0%,#fcb69f 50%,#ffeaa7 100%);
-min-height:100vh; display:flex; flex-direction:column;
+height:100dvh; display:flex; flex-direction:column;
 align-items:center; justify-content:center;
 font-family:‘Nunito’,sans-serif; overflow:hidden; user-select:none;
+padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 h1 {
-font-family:‘Fredoka One’,cursive; font-size:2.2rem;
+font-family:‘Fredoka One’,cursive; font-size:clamp(1.2rem,4vw,2.2rem);
 color:#ff6b6b; text-shadow:3px 3px 0 #fff,5px 5px 0 #ffb347;
-margin-bottom:7px;
+margin-bottom:4px; line-height:1;
 }
 
-.score-area { display:flex; gap:10px; margin-bottom:8px; align-items:center; flex-wrap:wrap; justify-content:center; }
+.score-area { display:flex; gap:6px; margin-bottom:5px; align-items:center; flex-wrap:wrap; justify-content:center; }
 .score-box {
-background:white; border-radius:14px; padding:5px 16px;
-font-size:0.9rem; font-weight:800; color:#ff6b6b;
-box-shadow:0 4px 0 #ffb347; border:2px solid #ffb347;
+background:white; border-radius:12px; padding:3px 12px;
+font-size:clamp(0.65rem,2.5vw,0.9rem); font-weight:800; color:#ff6b6b;
+box-shadow:0 3px 0 #ffb347; border:2px solid #ffb347;
 }
 .score-box span { color:#333; }
 .next-box {
-background:white; border-radius:14px; padding:5px 12px;
-font-size:0.82rem; font-weight:800; color:#888;
+background:white; border-radius:12px; padding:3px 10px;
+font-size:0.75rem; font-weight:800; color:#888;
 box-shadow:0 3px 0 #ddd; border:2px solid #ddd;
-display:flex; flex-direction:column; align-items:center; gap:2px;
+display:flex; flex-direction:column; align-items:center; gap:1px;
 }
-.next-box .next-label { font-size:0.65rem; font-weight:900; color:#aaa; letter-spacing:1px; text-transform:uppercase; }
+.next-box .next-label { font-size:0.55rem; font-weight:900; color:#aaa; letter-spacing:1px; text-transform:uppercase; }
 #nextCanvas { display:block; }
 
 #gameCanvas {
-border-radius:20px; display:block; cursor:crosshair;
-box-shadow:0 8px 0 #e07b39,0 12px 30px rgba(0,0,0,0.2);
-border:4px solid #ffb347;
+border-radius:16px; display:block; cursor:crosshair;
+box-shadow:0 6px 0 #e07b39,0 10px 20px rgba(0,0,0,0.2);
+border:3px solid #ffb347;
 }
 
 /* ── POWER-UPS ── */
 .powerups {
-display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; justify-content:center; max-width:420px;
+display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; justify-content:center; max-width:420px;
 }
 .pu-btn {
 display:flex; flex-direction:column; align-items:center;
-background:white; border:2.5px solid #ffb347; border-radius:16px;
-padding:7px 11px; cursor:pointer; font-family:‘Nunito’,sans-serif;
-box-shadow:0 4px 0 #e09030; transition:transform 0.1s,box-shadow 0.1s,opacity 0.2s;
-min-width:88px; position:relative;
+background:white; border:2px solid #ffb347; border-radius:13px;
+padding:5px 8px; cursor:pointer; font-family:‘Nunito’,sans-serif;
+box-shadow:0 3px 0 #e09030; transition:transform 0.1s,box-shadow 0.1s,opacity 0.2s;
+min-width:72px; position:relative;
 }
-.pu-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 6px 0 #e09030; }
-.pu-btn:active:not(:disabled) { transform:translateY(3px); box-shadow:0 1px 0 #e09030; }
+.pu-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 5px 0 #e09030; }
+.pu-btn:active:not(:disabled) { transform:translateY(2px); box-shadow:0 1px 0 #e09030; }
 .pu-btn:disabled { opacity:0.38; cursor:not-allowed; }
 .pu-btn.shaking { animation:btnShake 0.35s; }
-.pu-icon { font-size:1.4rem; line-height:1; }
-.pu-label { font-size:0.62rem; font-weight:800; color:#555; margin-top:3px; text-align:center; line-height:1.2; }
+.pu-icon { font-size:1.2rem; line-height:1; }
+.pu-label { font-size:0.55rem; font-weight:800; color:#555; margin-top:2px; text-align:center; line-height:1.2; }
 .pu-uses {
-position:absolute; top:-6px; right:-6px;
-background:#ff6b6b; color:white; font-size:0.6rem; font-weight:900;
-width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+position:absolute; top:-5px; right:-5px;
+background:#ff6b6b; color:white; font-size:0.55rem; font-weight:900;
+width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center;
 border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2);
 }
 .pu-btn.pick-mode { border-color:#ff6b6b; background:#fff5f5; box-shadow:0 4px 0 #c0392b; animation:pulse 0.8s infinite alternate; }
@@ -73,12 +74,12 @@ border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2);
 
 /* Evolution bar */
 .evolution-bar {
-display:flex; gap:3px; margin-top:8px; background:white;
-border-radius:14px; padding:6px 10px; box-shadow:0 3px 0 #ddd;
+display:flex; gap:2px; margin-top:5px; background:white;
+border-radius:12px; padding:4px 8px; box-shadow:0 3px 0 #ddd;
 border:2px solid #ddd; flex-wrap:wrap; justify-content:center; max-width:420px;
 }
-.evo-item { display:flex; flex-direction:column; align-items:center; font-size:0.52rem; color:#aaa; font-weight:700; }
-.evo-item .evo-emoji { font-size:0.95rem; }
+.evo-item { display:flex; flex-direction:column; align-items:center; font-size:0.55rem; color:#555; font-weight:700; }
+.evo-item .evo-emoji { font-size:1.7rem; }
 
 /* Overlays */
 #overlay {
@@ -186,7 +187,7 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <div class="evolution-bar" id="evoBar"></div>
 
-<div style="margin-top:6px;font-size:0.62rem;font-weight:700;color:#bbb;letter-spacing:0.5px;font-family:'Nunito',sans-serif;">Developed by: Ko9 Games</div>
+<div class="credit" style="margin-top:4px;font-size:1.1rem;font-weight:800;color:#4a90d9;letter-spacing:0.5px;font-family:'Nunito',sans-serif;">Developed by: Ko9 Games</div>
 
 <!-- Start overlay -->
 
@@ -248,8 +249,60 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const nextCanvas = document.getElementById('nextCanvas');
 const nctx = nextCanvas.getContext('2d');
+
+let WALL_RIGHT, FLOOR;
+function updateBounds(){
+  WALL_RIGHT = canvas.width - 4;
+  FLOOR = canvas.height - 4;
+}
+
+// ── RESPONSIVE CANVAS SIZING ──────────────────────────────────────────
+let dropX = canvas.width / 2;
+
+function resizeCanvas() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Max canvas width with padding
+  const maxW = Math.min(vw - 12, 410);
+
+  // Measure actual UI elements height (everything except canvas)
+  const h1El = document.querySelector('h1');
+  const scoreEl = document.querySelector('.score-area');
+  const puEl = document.querySelector('.powerups');
+  const evoEl = document.querySelector('.evolution-bar');
+  const creditEl = document.querySelector('.credit');
+
+  // Temporarily shrink canvas to measure surrounding UI
+  canvas.style.display = 'none';
+  const uiH = (h1El?.offsetHeight||0) + (scoreEl?.offsetHeight||0) +
+               (puEl?.offsetHeight||0) + (evoEl?.offsetHeight||0) +
+               (creditEl?.offsetHeight||0) + 60; // gaps/padding
+  canvas.style.display = 'block';
+
+  const maxH = Math.max(200, vh - uiH);
+
+  // Fit canvas within available space keeping 410:500 ratio
+  let cw = maxW;
+  let ch = cw * (500/410);
+  if (ch > maxH) { ch = maxH; cw = ch * (410/500); }
+
+  canvas.width  = Math.floor(cw);
+  canvas.height = Math.floor(ch);
+
+  // Size next-preview canvas proportionally
+  const nSize = Math.max(36, Math.floor(cw * 0.13));
+  nextCanvas.width  = nSize;
+  nextCanvas.height = nSize;
+
+  dropX = canvas.width / 2;
+  updateBounds();
+}
+resizeCanvas();
+window.addEventListener('resize', ()=>{ resizeCanvas(); });
+
 const GRAVITY=0.35, FRICTION=0.88, BOUNCE=0.25;
-const WALL_LEFT=4, WALL_RIGHT=canvas.width-4, FLOOR=canvas.height-4, DANGER_LINE=80;
+const WALL_LEFT=4;
 
 // ── AUDIO ─────────────────────────────────────────────────────────────
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -339,7 +392,7 @@ document.addEventListener('click', () => { if(audioCtx.state === 'suspended') au
 document.addEventListener('touchend', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
 
 let balls=[], score=0, bestScore=0, currentIdx=0, nextIdx=0;
-let dropping=false, dropX=canvas.width/2, gameActive=false;
+let dropping=false, gameActive=false;
 let particles=[], pickMode=false, shaking=false;
 let lastInputTime=0, idleWarning=false, idlePulse=0;
 
