@@ -38,7 +38,7 @@ display:flex; flex-direction:column; align-items:center; gap:1px;
 min-width:50px;
 }
 .next-box .next-label { font-size:0.55rem; font-weight:900; color:#aaa; letter-spacing:1px; text-transform:uppercase; }
-#nextCanvas { display:block; width:40px !important; height:40px !important; }
+#nextCanvas { display:block; width:50px !important; height:50px !important; }
 
 #gameCanvas {
 border-radius:16px; display:block; cursor:crosshair;
@@ -157,7 +157,7 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
   <div class="score-box">Best: <span id="bestDisplay">0</span></div>
   <div class="next-box">
     <span class="next-label">Next</span>
-    <canvas id="nextCanvas" width="40" height="40"></canvas>
+    <canvas id="nextCanvas" width="50" height="50"></canvas>
   </div>
   <button id="couponBtn" onclick="openCoupon()" style="background:none;border:1.5px solid #a29bfe;border-radius:20px;padding:4px 10px;font-size:0.62rem;font-weight:800;color:#6c5ce7;font-family:'Nunito',sans-serif;cursor:pointer;letter-spacing:0.5px;box-shadow:0 2px 0 #a29bfe;">🎟️</button>
 </div>
@@ -278,17 +278,17 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <script>
 const ANIMALS = [
-  {emoji:'🐱', name:'Kitten',  radius:16,  points:1 },
-  {emoji:'🐶', name:'Puppy',   radius:23,  points:3 },
-  {emoji:'🐹', name:'Hamster', radius:28,  points:6 },
-  {emoji:'🐰', name:'Bunny',   radius:36,  points:10},
-  {emoji:'🦊', name:'Fox',     radius:43,  points:15},
-  {emoji:'🐻', name:'Bear',    radius:52,  points:21},
-  {emoji:'🐼', name:'Panda',   radius:61,  points:28},
-  {emoji:'🦁', name:'Lion',    radius:87, points:36},
-  {emoji:'🐯', name:'Tiger',   radius:99, points:45},
-  {emoji:'🦄', name:'Unicorn', radius:111, points:55},
-  {emoji:'🐉', name:'Dragon',     radius:127, points:70 },
+  {emoji:'🐱', name:'Kitten',  radius:17,  points:1 },
+  {emoji:'🐶', name:'Puppy',   radius:24,  points:3 },
+  {emoji:'🐹', name:'Hamster', radius:29,  points:6 },
+  {emoji:'🐰', name:'Bunny',   radius:38,  points:10},
+  {emoji:'🦊', name:'Fox',     radius:45,  points:15},
+  {emoji:'🐻', name:'Bear',    radius:55,  points:21},
+  {emoji:'🐼', name:'Panda',   radius:64,  points:28},
+  {emoji:'🦁', name:'Lion',    radius:91, points:36},
+  {emoji:'🐯', name:'Tiger',   radius:104, points:45},
+  {emoji:'🦄', name:'Unicorn', radius:117, points:55},
+  {emoji:'🐉', name:'Dragon',     radius:133, points:70 },
 ];
 
 
@@ -336,7 +336,7 @@ function resizeCanvas() {
   canvas.height = Math.floor(ch);
 
   // Size next-preview canvas — keep it small and fixed
-  const nSize = 40;
+  const nSize = 50;
   nextCanvas.width  = nSize;
   nextCanvas.height = nSize;
 
@@ -567,6 +567,8 @@ function startGame(){
   document.getElementById('overlay2').style.display='none';
   document.getElementById('overlay3').style.display='none';
   document.getElementById('pickCursor').style.display='none';
+  document.getElementById('couponBtn').style.display='';
+  redeemedCodes.clear();
   exitPickMode();
 }
 
@@ -581,7 +583,7 @@ function drawNextCanvas(){
   if(!gameActive) return;
   const a=ANIMALS[nextIdx];
   const cx=nw/2, cy=nh/2;
-  const r=Math.min(a.radius, 26); // cap so it fits
+  const r=Math.floor(Math.min(nw,nh)/2) - 3; // always fits with 3px padding
   const angle=performance.now()*0.0018;
   nctx.save();
   nctx.translate(cx,cy);
@@ -1064,7 +1066,8 @@ function activateUpgrade(){
 // ── COUPON ────────────────────────────────────────────────────────────
 const COUPONS = {
   'PARVEZ11': { bonus: 100, upgrade: 10 },
-  'IQBAL10':  { bonus: 1000, upgrade: 100 }
+  'IQBAL10':  { bonus: 1000, upgrade: 100 },
+  'DOUBLEIT': { double: true }
 };
 const redeemedCodes = new Set();
 
@@ -1086,17 +1089,30 @@ function redeemCoupon(){
   if(redeemedCodes.has(code)){ msg.style.color='#e17055'; msg.textContent='❌ Code already used!'; return; }
   const coupon = COUPONS[code];
   if(!coupon){ msg.style.color='#e17055'; msg.textContent='❌ Invalid code!'; return; }
-  const bonus = coupon.bonus;
   redeemedCodes.add(code);
-  puUses.pick += bonus;
-  puUses.shake += bonus;
-  puUses['clear-small'] += bonus;
-  puUses.bomb += bonus;
-  puUses.upgrade += coupon.upgrade;
-  updatePuUI();
-  msg.style.color='#00b894';
-  msg.textContent=`✅ +${bonus} power-ups & +${coupon.upgrade} upgrades added!`;
-  showToast(`🎟️ Coupon applied! +${bonus} uses & +${coupon.upgrade} upgrades!`);
+
+  if(coupon.double){
+    puUses.pick *= 2;
+    puUses.shake *= 2;
+    puUses['clear-small'] *= 2;
+    puUses.bomb *= 2;
+    puUses.upgrade *= 2;
+    updatePuUI();
+    msg.style.color='#00b894';
+    msg.textContent='✅ All power-up uses doubled!';
+    showToast('🎟️ DOUBLEIT! All power-ups doubled!');
+  } else {
+    const bonus = coupon.bonus;
+    puUses.pick += bonus;
+    puUses.shake += bonus;
+    puUses['clear-small'] += bonus;
+    puUses.bomb += bonus;
+    puUses.upgrade += coupon.upgrade;
+    updatePuUI();
+    msg.style.color='#00b894';
+    msg.textContent=`✅ +${bonus} power-ups & +${coupon.upgrade} upgrades added!`;
+    showToast(`🎟️ Coupon applied! +${bonus} uses & +${coupon.upgrade} upgrades!`);
+  }
   document.getElementById('couponBtn').style.display='none';
   setTimeout(closeCoupon, 1800);
 }
