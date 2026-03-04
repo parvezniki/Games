@@ -218,9 +218,9 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 ```
 <!-- Animals ring top -->
 <div style="display:flex;justify-content:center;gap:2px;margin-bottom:6px;flex-wrap:wrap;">
+  <span style="font-size:1.9rem">🐹</span>
   <span style="font-size:1.9rem">🐱</span>
   <span style="font-size:1.9rem">🐶</span>
-  <span style="font-size:1.9rem">🐹</span>
   <span style="font-size:1.9rem">🐰</span>
   <span style="font-size:1.9rem">🦊</span>
   <span style="font-size:1.9rem">🐻</span>
@@ -236,12 +236,11 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <!-- Animals ring bottom -->
 <div style="display:flex;justify-content:center;gap:2px;margin-top:10px;flex-wrap:wrap;">
+  <span style="font-size:1.9rem">🐨</span>
   <span style="font-size:1.9rem">🐼</span>
-  <span style="font-size:1.9rem">🦁</span>
   <span style="font-size:1.9rem">🐯</span>
-  <span style="font-size:1.9rem">🦄</span>
+  <span style="font-size:1.9rem">🦁</span>
   <span style="font-size:1.9rem">🐉</span>
-  <span style="font-size:1.9rem">🔥</span>
 </div>
 ```
 
@@ -278,17 +277,17 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <script>
 const ANIMALS = [
-  {emoji:'🐱', name:'Kitten',  radius:17,  points:1 },
-  {emoji:'🐶', name:'Puppy',   radius:24,  points:3 },
-  {emoji:'🐹', name:'Hamster', radius:29,  points:6 },
+  {emoji:'🐹', name:'Hamster', radius:17,  points:1 },
+  {emoji:'🐱', name:'Kitten',  radius:24,  points:3 },
+  {emoji:'🐶', name:'Puppy',   radius:29,  points:6 },
   {emoji:'🐰', name:'Bunny',   radius:38,  points:10},
   {emoji:'🦊', name:'Fox',     radius:45,  points:15},
   {emoji:'🐻', name:'Bear',    radius:55,  points:21},
-  {emoji:'🐼', name:'Panda',   radius:64,  points:28},
-  {emoji:'🦁', name:'Lion',    radius:91, points:36},
+  {emoji:'🐨', name:'Koala',   radius:64,  points:28},
+  {emoji:'🐼', name:'Panda',   radius:91,  points:36},
   {emoji:'🐯', name:'Tiger',   radius:104, points:45},
-  {emoji:'🦄', name:'Unicorn', radius:117, points:55},
-  {emoji:'🐉', name:'Dragon',     radius:133, points:70 },
+  {emoji:'🦁', name:'Lion',    radius:117, points:55},
+  {emoji:'🐉', name:'Dragon',  radius:133, points:70},
 ];
 
 
@@ -847,13 +846,19 @@ function activateBomb(){
 // ── UPDATE ────────────────────────────────────────────────────────────
 function update(){
   for(const b of balls){
+    // While waiting for win tap, freeze dragon in place and spin it
+    if(waitingForWinTap && b.idx === ANIMALS.length - 1){
+      b.vx = 0; b.vy = 0;
+      b.angle = (b.angle||0) - 0.025; // anti-clockwise
+      b.age++; b.scale = Math.min(1, b.scale+0.08);
+      continue;
+    }
     b.vy+=GRAVITY; b.vx*=FRICTION; b.x+=b.vx; b.y+=b.vy;
     b.age++; b.scale=Math.min(1,b.scale+0.08);
     const onGround = b.y+b.r >= FLOOR-1;
     const settled = Math.abs(b.vy)<0.8 && Math.abs(b.vx)<0.8 && b.age>30;
     const rd = b.rotDir || 1;
     if(settled){
-      // Gradually slow to a stop
       b.angle=(b.angle||0)+b.vx/b.r*0.1;
     } else if(onGround){
       b.angle=(b.angle||0)+b.vx/b.r*0.375;
@@ -985,17 +990,44 @@ function draw(){
     ctx.textAlign='center'; ctx.fillText('🎯 Tap an animal to remove',canvas.width/2, 30);
   }
 
-  // Win tap prompt
+  // Win tap prompt + win particles
   if(waitingForWinTap){
+    // Spawn celebratory particles continuously
+    if(Math.random() < 0.4){
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height * 0.7;
+      const emojis = ['✨','⭐','🌟','💫','🎉','🎊'];
+      const em = emojis[Math.floor(Math.random()*emojis.length)];
+      particles.push({
+        type:'emoji', x, y, emoji: em,
+        vx:(Math.random()-0.5)*3, vy:-(1+Math.random()*3),
+        life:1, size:14+Math.random()*10,
+        rot:Math.random()*Math.PI*2, rotV:(Math.random()-0.5)*0.2
+      });
+    }
+    if(Math.random() < 0.3){
+      particles.push({
+        type:'dot', x:Math.random()*canvas.width, y:Math.random()*canvas.height,
+        vx:(Math.random()-0.5)*2, vy:-(1+Math.random()*2),
+        life:1, r:3+Math.random()*4,
+        color:['#FFD700','#ff6b6b','#a29bfe','#00cec9','#fd79a8'][Math.floor(Math.random()*5)]
+      });
+    }
+
+    // Pulsing "Tap to celebrate" label
     const alpha = (Math.sin(performance.now()*0.004)+1)/2 * 0.8 + 0.2;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.font='bold 16px Nunito';
+    ctx.font='bold 26px Nunito';
     ctx.fillStyle='#e6ac00';
     ctx.textAlign='center';
+    ctx.shadowColor='rgba(0,0,0,0.3)';
+    ctx.shadowBlur=6;
     ctx.fillText('🐉 Tap to celebrate!', canvas.width/2, canvas.height/2);
     ctx.restore();
-  }  if(idleWarning && !dropping && !pickMode){
+  }
+
+  if(idleWarning && !dropping && !pickMode && !waitingForWinTap){
     const alpha=0.5+idlePulse*0.5;
     ctx.save();
     ctx.globalAlpha=alpha;
@@ -1014,6 +1046,17 @@ function draw(){
 // ── YOU WIN ───────────────────────────────────────────────────────────
 function waitForWinTap(){
   waitingForWinTap = true;
+  // Immediately set dragon to spin anti-clockwise and stop moving
+  balls.forEach(b => {
+    if(b.idx === ANIMALS.length - 1){
+      b.rotDir = -1;
+      b.vx = 0; b.vy = 0;
+    }
+  });
+  // Disable all power-up buttons
+  ['pick','shake','clear-small','bomb','upgrade'].forEach(id=>{
+    document.getElementById(`pu-${id}`).disabled = true;
+  });
   playWin();
   showToast('🐉 Tap anywhere to celebrate!');
 }
