@@ -64,10 +64,12 @@ min-width:72px; position:relative;
 .pu-icon { font-size:1.2rem; line-height:1; }
 .pu-label { font-size:0.55rem; font-weight:800; color:#555; margin-top:2px; text-align:center; line-height:1.2; }
 .pu-uses {
-position:absolute; top:-5px; right:-5px;
-background:#ff6b6b; color:white; font-size:0.55rem; font-weight:900;
-width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+position:absolute; top:-6px; right:-6px;
+background:#ff6b6b; color:white; font-size:0.5rem; font-weight:900;
+min-width:18px; height:18px; border-radius:9px; padding:0 4px;
+display:flex; align-items:center; justify-content:center;
 border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2);
+white-space:nowrap;
 }
 .pu-btn.pick-mode { border-color:#ff6b6b; background:#fff5f5; box-shadow:0 4px 0 #c0392b; animation:pulse 0.8s infinite alternate; }
 @keyframes pulse { from{transform:scale(1)} to{transform:scale(1.05)} }
@@ -157,6 +159,7 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
     <span class="next-label">Next</span>
     <canvas id="nextCanvas" width="40" height="40"></canvas>
   </div>
+  <button id="couponBtn" onclick="openCoupon()" style="background:none;border:1.5px solid #a29bfe;border-radius:20px;padding:4px 10px;font-size:0.62rem;font-weight:800;color:#6c5ce7;font-family:'Nunito',sans-serif;cursor:pointer;letter-spacing:0.5px;box-shadow:0 2px 0 #a29bfe;">🎟️</button>
 </div>
 
 <canvas id="gameCanvas" width="410" height="500"></canvas>
@@ -165,28 +168,47 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <div class="powerups">
   <button class="pu-btn" id="pu-pick" onclick="activatePick()" title="Click an animal to remove it">
-    <span class="pu-uses" id="pu-pick-uses">10</span>
+    <span class="pu-uses" id="pu-pick-uses">6</span>
     <span class="pu-icon">🎯</span>
     <span class="pu-label">Remove<br>One</span>
   </button>
   <button class="pu-btn" id="pu-shake" onclick="activateShake()" title="Shake everything and trigger merges">
-    <span class="pu-uses" id="pu-shake-uses">10</span>
+    <span class="pu-uses" id="pu-shake-uses">6</span>
     <span class="pu-icon">🌀</span>
     <span class="pu-label">Shake<br>& Merge</span>
   </button>
   <button class="pu-btn" id="pu-clear-small" onclick="activateClearSmall()" title="Remove all kittens & puppies">
-    <span class="pu-uses" id="pu-clear-small-uses">10</span>
+    <span class="pu-uses" id="pu-clear-small-uses">6</span>
     <span class="pu-icon">🧹</span>
     <span class="pu-label">Clear<br>Smallest</span>
   </button>
   <button class="pu-btn" id="pu-bomb" onclick="activateBomb()" title="Explode 4 random animals">
-    <span class="pu-uses" id="pu-bomb-uses">10</span>
+    <span class="pu-uses" id="pu-bomb-uses">6</span>
     <span class="pu-icon">💣</span>
     <span class="pu-label">Bomb<br>×4</span>
   </button>
+  <button class="pu-btn" id="pu-upgrade" onclick="activateUpgrade()" title="Upgrade all animals to next level" style="border-color:#00cec9;box-shadow:0 3px 0 #00b5b0;">
+    <span class="pu-uses" id="pu-upgrade-uses">1</span>
+    <span class="pu-icon">⬆️</span>
+    <span class="pu-label" style="color:#00cec9">Upgrade<br>All</span>
+  </button>
 </div>
 
-<div class="credit" style="margin-top:4px;font-size:1.1rem;font-weight:800;color:#4a90d9;letter-spacing:0.5px;font-family:'Nunito',sans-serif;">Developed by: Ko9 Games</div>
+<!-- Coupon Modal -->
+
+<div id="couponModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(5px);">
+  <div style="background:white;border-radius:22px;padding:26px 30px;text-align:center;box-shadow:0 10px 0 #a29bfe,0 18px 40px rgba(0,0,0,0.3);border:3px solid #a29bfe;max-width:300px;width:85vw;">
+    <div style="font-size:2.5rem;margin-bottom:6px">🎟️</div>
+    <h3 style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:#6c5ce7;margin-bottom:8px">Enter Coupon</h3>
+    <input id="couponInput" type="text" placeholder="Type code here..."
+      style="width:100%;padding:10px 14px;border-radius:12px;border:2px solid #a29bfe;font-size:1rem;font-family:'Nunito',sans-serif;font-weight:800;text-align:center;outline:none;margin-bottom:10px;text-transform:uppercase;letter-spacing:2px;">
+    <div id="couponMsg" style="font-size:0.82rem;font-weight:800;min-height:18px;margin-bottom:10px;"></div>
+    <button class="btn" style="background:linear-gradient(180deg,#a29bfe,#6c5ce7);box-shadow:0 5px 0 #4a3ab5;" onclick="redeemCoupon()">Redeem</button>
+    <button class="btn" style="background:linear-gradient(180deg,#b2bec3,#636e72);box-shadow:0 5px 0 #2d3436;margin-top:4px;" onclick="closeCoupon()">Cancel</button>
+  </div>
+</div>
+
+<div class="credit" style="margin-top:4px;font-size:1.1rem;font-weight:800;color:#4a90d9;letter-spacing:0.5px;font-family:'Nunito',sans-serif;">Powered by: Ko9 Games</div>
 
 <!-- Start overlay -->
 
@@ -510,11 +532,11 @@ let dropping=false, gameActive=false;
 let particles=[], pickMode=false, shaking=false;
 let lastInputTime=0, idleWarning=false, idlePulse=0;
 
-const puUses = { pick:3, shake:3, 'clear-small':3, bomb:3 };
+const puUses = { pick:6, shake:6, 'clear-small':6, bomb:6, upgrade:1 };
 
 // ── POWER-UP USES DISPLAY ──────────────────────────────────────────────
 function updatePuUI(){
-  ['pick','shake','clear-small','bomb'].forEach(id=>{
+  ['pick','shake','clear-small','bomb','upgrade'].forEach(id=>{
     const uses = puUses[id];
     document.getElementById(`pu-${id}-uses`).textContent = uses;
     document.getElementById(`pu-${id}`).disabled = uses <= 0 || !gameActive;
@@ -538,7 +560,7 @@ function startGame(){
   dropping=false; gameActive=true;
   currentIdx=randIdx(); nextIdx=randIdx();
   lastInputTime=performance.now(); idleWarning=false;
-  puUses.pick=10; puUses.shake=10; puUses['clear-small']=10; puUses.bomb=10;
+  puUses.pick=6; puUses.shake=6; puUses['clear-small']=6; puUses.bomb=6; puUses.upgrade=1;
   updatePuUI(); updateUI();
   document.getElementById('overlay').classList.add('hidden');
   document.getElementById('overlay2').style.display='none';
@@ -1003,6 +1025,81 @@ function youWin(){
   document.getElementById('overlay3').style.display='flex';
   launchConfetti();
 }
+
+// 5. Upgrade All — evolve every animal one tier up
+function activateUpgrade(){
+  if(!gameActive || puUses.upgrade<=0) return;
+  const maxIdx = ANIMALS.length - 1;
+  let upgraded = 0;
+  balls.forEach(b => {
+    if(b.idx < maxIdx){
+      b.idx++;
+      b.r = ANIMALS[b.idx].radius;
+      score += ANIMALS[b.idx].points;
+      spawnBurst(b.x, b.y, ANIMALS[b.idx].emoji, false);
+      upgraded++;
+    }
+  });
+  if(upgraded === 0){ showToast('All animals are already at max!'); return; }
+  puUses.upgrade--;
+  updatePuUI();
+  if(score > bestScore) bestScore = score;
+  updateUI();
+  showToast(`⬆️ Upgraded ${upgraded} animal${upgraded>1?'s':''}!`);
+  // play a rising sweep sound
+  const now = audioCtx.currentTime;
+  [400, 600, 900, 1200].forEach((f, i) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(f, now + i*0.07);
+    g.gain.setValueAtTime(0.12, now + i*0.07);
+    g.gain.exponentialRampToValueAtTime(0.001, now + i*0.07 + 0.3);
+    o.start(now + i*0.07); o.stop(now + i*0.07 + 0.3);
+  });
+}
+
+// ── COUPON ────────────────────────────────────────────────────────────
+const COUPONS = {
+  'PARVEZ11': { bonus: 100, upgrade: 10 },
+  'IQBAL10':  { bonus: 1000, upgrade: 100 }
+};
+const redeemedCodes = new Set();
+
+function openCoupon(){
+  document.getElementById('couponInput').value='';
+  document.getElementById('couponMsg').textContent='';
+  document.getElementById('couponModal').style.display='flex';
+  setTimeout(()=>document.getElementById('couponInput').focus(), 100);
+}
+
+function closeCoupon(){
+  document.getElementById('couponModal').style.display='none';
+}
+
+function redeemCoupon(){
+  const code = document.getElementById('couponInput').value.trim().toUpperCase();
+  const msg = document.getElementById('couponMsg');
+  if(!code){ msg.style.color='#e17055'; msg.textContent='⚠️ Please enter a code!'; return; }
+  if(redeemedCodes.has(code)){ msg.style.color='#e17055'; msg.textContent='❌ Code already used!'; return; }
+  const coupon = COUPONS[code];
+  if(!coupon){ msg.style.color='#e17055'; msg.textContent='❌ Invalid code!'; return; }
+  const bonus = coupon.bonus;
+  redeemedCodes.add(code);
+  puUses.pick += bonus;
+  puUses.shake += bonus;
+  puUses['clear-small'] += bonus;
+  puUses.bomb += bonus;
+  puUses.upgrade += coupon.upgrade;
+  updatePuUI();
+  msg.style.color='#00b894';
+  msg.textContent=`✅ +${bonus} power-ups & +${coupon.upgrade} upgrades added!`;
+  showToast(`🎟️ Coupon applied! +${bonus} uses & +${coupon.upgrade} upgrades!`);
+  document.getElementById('couponBtn').style.display='none';
+  setTimeout(closeCoupon, 1800);
+}
+
+document.getElementById('couponInput').addEventListener('keydown', e=>{ if(e.key==='Enter') redeemCoupon(); });
 
 // ── GAME OVER ─────────────────────────────────────────────────────────
 function gameOver(){
