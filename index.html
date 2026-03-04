@@ -530,6 +530,7 @@ function playWin() {
 let balls=[], score=0, bestScore=0, currentIdx=0, nextIdx=0;
 let dropping=false, gameActive=false;
 let particles=[], pickMode=false, shaking=false;
+let waitingForWinTap = false;
 let lastInputTime=0, idleWarning=false, idlePulse=0;
 
 const puUses = { pick:6, shake:6, 'clear-small':6, bomb:6, upgrade:1 };
@@ -593,7 +594,7 @@ function drawNextCanvas(){
 }
 
 function dropBall(){
-  if(!gameActive||dropping||pickMode)return;
+  if(!gameActive||dropping||pickMode||waitingForWinTap)return;
   const a=ANIMALS[currentIdx];
   const idleAngle = performance.now()*0.0018;
   const clampedX = Math.max(WALL_LEFT+a.radius, Math.min(WALL_RIGHT-a.radius, dropX));
@@ -1008,8 +1009,6 @@ function draw(){
 }
 
 // ── YOU WIN ───────────────────────────────────────────────────────────
-let waitingForWinTap = false;
-
 function waitForWinTap(){
   waitingForWinTap = true;
   playWin();
@@ -1046,6 +1045,9 @@ function activateUpgrade(){
   if(score > bestScore) bestScore = score;
   updateUI();
   showToast(`⬆️ Upgraded ${upgraded} animal${upgraded>1?'s':''}!`);
+  // Check if any animal reached Dragon
+  const dragonIdx = ANIMALS.length - 1;
+  if(balls.some(b => b.idx === dragonIdx)) setTimeout(()=>waitForWinTap(), 800);
   // play a rising sweep sound
   const now = audioCtx.currentTime;
   [400, 600, 900, 1200].forEach((f, i) => {
