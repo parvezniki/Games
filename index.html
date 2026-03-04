@@ -603,7 +603,7 @@ function dropBall(){
   balls.push({
     x: clampedX,
     y:40, vx:0, vy:0, r:a.radius, idx:currentIdx,
-    id:Date.now()+Math.random(), age:0, scale:0.3, angle:idleAngle,
+    id:Date.now()+Math.random(), age:0, scale:0.3, angle:idleAngle, rotDir:Math.random()<0.5?1:-1,
   });
   dropping=true;
   playDrop();
@@ -727,7 +727,7 @@ function checkMerges(){
           x:mx, y:my, vx:(balls[i].vx+balls[j].vx)*0.4,
           vy:Math.min(-1,(balls[i].vy+balls[j].vy)*0.4),
           r:ANIMALS[newIdx].radius, idx:newIdx,
-          id:Date.now()+Math.random(), age:0, scale:0.15, angle:0,
+          id:Date.now()+Math.random(), age:0, scale:0.15, angle:0, rotDir:Math.random()<0.5?1:-1,
         });
         break;
       }
@@ -851,13 +851,14 @@ function update(){
     b.age++; b.scale=Math.min(1,b.scale+0.08);
     const onGround = b.y+b.r >= FLOOR-1;
     const settled = Math.abs(b.vy)<0.8 && Math.abs(b.vx)<0.8 && b.age>30;
+    const rd = b.rotDir || 1;
     if(settled){
       // Gradually slow to a stop
       b.angle=(b.angle||0)+b.vx/b.r*0.1;
     } else if(onGround){
       b.angle=(b.angle||0)+b.vx/b.r*0.375;
     } else {
-      b.angle=(b.angle||0)+0.018;
+      b.angle=(b.angle||0)+0.018*rd;
     }
     if(b.x-b.r<WALL_LEFT){b.x=WALL_LEFT+b.r; b.vx=Math.abs(b.vx)*BOUNCE;}
     if(b.x+b.r>WALL_RIGHT){b.x=WALL_RIGHT-b.r; b.vx=-Math.abs(b.vx)*BOUNCE;}
@@ -1120,10 +1121,39 @@ function redeemCoupon(){
 document.getElementById('couponInput').addEventListener('keydown', e=>{ if(e.key==='Enter') redeemCoupon(); });
 
 // ── GAME OVER ─────────────────────────────────────────────────────────
+function playGameOver() {
+  const now = audioCtx.currentTime;
+  // Descending sad trombone-style wah-wah
+  const notes = [392, 349, 311, 277];
+  notes.forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(freq, now + i*0.18);
+    o.frequency.exponentialRampToValueAtTime(freq*0.88, now + i*0.18 + 0.16);
+    g.gain.setValueAtTime(0, now + i*0.18);
+    g.gain.linearRampToValueAtTime(0.15, now + i*0.18 + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, now + i*0.18 + 0.28);
+    o.start(now + i*0.18); o.stop(now + i*0.18 + 0.3);
+  });
+  // Final low thud
+  const sub = audioCtx.createOscillator();
+  const subG = audioCtx.createGain();
+  sub.connect(subG); subG.connect(audioCtx.destination);
+  sub.type = 'sine';
+  sub.frequency.setValueAtTime(100, now + 0.75);
+  sub.frequency.exponentialRampToValueAtTime(40, now + 1.1);
+  subG.gain.setValueAtTime(0.25, now + 0.75);
+  subG.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+  sub.start(now + 0.75); sub.stop(now + 1.2);
+}
+
 function gameOver(){
   gameActive=false;
   exitPickMode();
   updatePuUI();
+  playGameOver();
   document.getElementById('finalScore').textContent=score;
   document.getElementById('overlay2').style.display='flex';
   launchConfetti();
