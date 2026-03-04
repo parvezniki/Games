@@ -1,47 +1,55 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Purrfect Merge</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purrfect Merge Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f3f3;
-            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(45deg, #f3e5ab, #56ab2f);
         }
-        .animal {
-            display: inline-block;
-            margin: 10px;
-            cursor: pointer;
+        canvas {
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
     </style>
 </head>
 <body>
-    <h1>Purrfect Merge Game</h1>
-    <div id="gameArea">
-        <div class="animal" data-animal="cat"><img src="cat.png" alt="Cat"></div>
-        <div class="animal" data-animal="dog"><img src="dog.png" alt="Dog"></div>
-        <div class="animal" data-animal="rabbit"><img src="rabbit.png" alt="Rabbit"></div>
-    </div>
+    <canvas id="gameCanvas" width="410" height="500"></canvas>
+    <div id="score">Score: 0</div>
     <script>
+        // Game variables
         let score = 0;
-        let mergeableAnimals = [];
+        let evolutionBar = 0;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        const mergeAnimals = (animal1, animal2) => {
-            // Logic for merging animals
-            let newAnimal = `merged-${animal1}-${animal2}`;
-            return newAnimal;
-        };
+        // Game logic
+        function startGame() {
+            // Initialize game objects and start the game loop
+        }
 
-        document.querySelectorAll('.animal').forEach(animal => {
-            animal.addEventListener('click', () => {
-                mergeableAnimals.push(animal.dataset.animal);
-                if (mergeableAnimals.length == 2) {
-                    let newAnimal = mergeAnimals(mergeableAnimals[0], mergeableAnimals[1]);
-                    score += 10;
-                    alert(`You merged a ${mergeableAnimals[0]} and a ${mergeableAnimals[1]} to create ${newAnimal}!`);
-                    mergeableAnimals = [];
-                }
-            });
-        });
+        function updateGameArea() {
+            // Update game mechanics, check for collisions, and redraw canvas
+        }
+
+        function mergeAnimals(type1, type2) {
+            // Merge logic implementation
+        }
+
+        // More game functions such as handling power-ups, scoring, and rendering
+        startGame();
     </script>
 </body>
 </html>
