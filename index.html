@@ -35,9 +35,10 @@ background:white; border-radius:12px; padding:3px 10px;
 font-size:0.75rem; font-weight:800; color:#888;
 box-shadow:0 3px 0 #ddd; border:2px solid #ddd;
 display:flex; flex-direction:column; align-items:center; gap:1px;
+min-width:50px;
 }
 .next-box .next-label { font-size:0.55rem; font-weight:900; color:#aaa; letter-spacing:1px; text-transform:uppercase; }
-#nextCanvas { display:block; }
+#nextCanvas { display:block; width:40px !important; height:40px !important; }
 
 #gameCanvas {
 border-radius:16px; display:block; cursor:crosshair;
@@ -154,7 +155,7 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
   <div class="score-box">Best: <span id="bestDisplay">0</span></div>
   <div class="next-box">
     <span class="next-label">Next</span>
-    <canvas id="nextCanvas" width="60" height="60"></canvas>
+    <canvas id="nextCanvas" width="40" height="40"></canvas>
   </div>
 </div>
 
@@ -287,8 +288,8 @@ function resizeCanvas() {
   canvas.width  = Math.floor(cw);
   canvas.height = Math.floor(ch);
 
-  // Size next-preview canvas proportionally
-  const nSize = Math.max(36, Math.floor(cw * 0.13));
+  // Size next-preview canvas — keep it small and fixed
+  const nSize = 40;
   nextCanvas.width  = nSize;
   nextCanvas.height = nSize;
 
