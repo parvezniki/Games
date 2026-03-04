@@ -1,55 +1,837 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purrfect Merge Game</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(45deg, #f3e5ab, #56ab2f);
-        }
-        canvas {
-            border: 2px solid #333;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            animation: bounce 1s infinite;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐱 Purrfect Merge!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+background: linear-gradient(135deg,#ffecd2 0%,#fcb69f 50%,#ffeaa7 100%);
+min-height:100vh; display:flex; flex-direction:column;
+align-items:center; justify-content:center;
+font-family:‘Nunito’,sans-serif; overflow:hidden; user-select:none;
+}
+
+h1 {
+font-family:‘Fredoka One’,cursive; font-size:2.2rem;
+color:#ff6b6b; text-shadow:3px 3px 0 #fff,5px 5px 0 #ffb347;
+margin-bottom:7px;
+}
+
+.score-area { display:flex; gap:10px; margin-bottom:8px; align-items:center; flex-wrap:wrap; justify-content:center; }
+.score-box {
+background:white; border-radius:14px; padding:5px 16px;
+font-size:0.9rem; font-weight:800; color:#ff6b6b;
+box-shadow:0 4px 0 #ffb347; border:2px solid #ffb347;
+}
+.score-box span { color:#333; }
+.next-box {
+background:white; border-radius:14px; padding:5px 12px;
+font-size:0.82rem; font-weight:800; color:#888;
+box-shadow:0 3px 0 #ddd; border:2px solid #ddd;
+display:flex; flex-direction:column; align-items:center; gap:2px;
+}
+.next-box .next-label { font-size:0.65rem; font-weight:900; color:#aaa; letter-spacing:1px; text-transform:uppercase; }
+#nextCanvas { display:block; }
+
+#gameCanvas {
+border-radius:20px; display:block; cursor:crosshair;
+box-shadow:0 8px 0 #e07b39,0 12px 30px rgba(0,0,0,0.2);
+border:4px solid #ffb347;
+}
+
+/* ── POWER-UPS ── */
+.powerups {
+display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; justify-content:center; max-width:420px;
+}
+.pu-btn {
+display:flex; flex-direction:column; align-items:center;
+background:white; border:2.5px solid #ffb347; border-radius:16px;
+padding:7px 11px; cursor:pointer; font-family:‘Nunito’,sans-serif;
+box-shadow:0 4px 0 #e09030; transition:transform 0.1s,box-shadow 0.1s,opacity 0.2s;
+min-width:88px; position:relative;
+}
+.pu-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 6px 0 #e09030; }
+.pu-btn:active:not(:disabled) { transform:translateY(3px); box-shadow:0 1px 0 #e09030; }
+.pu-btn:disabled { opacity:0.38; cursor:not-allowed; }
+.pu-btn.shaking { animation:btnShake 0.35s; }
+.pu-icon { font-size:1.4rem; line-height:1; }
+.pu-label { font-size:0.62rem; font-weight:800; color:#555; margin-top:3px; text-align:center; line-height:1.2; }
+.pu-uses {
+position:absolute; top:-6px; right:-6px;
+background:#ff6b6b; color:white; font-size:0.6rem; font-weight:900;
+width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2);
+}
+.pu-btn.pick-mode { border-color:#ff6b6b; background:#fff5f5; box-shadow:0 4px 0 #c0392b; animation:pulse 0.8s infinite alternate; }
+@keyframes pulse { from{transform:scale(1)} to{transform:scale(1.05)} }
+@keyframes btnShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 60%{transform:translateX(4px)} }
+
+/* Evolution bar */
+.evolution-bar {
+display:flex; gap:3px; margin-top:8px; background:white;
+border-radius:14px; padding:6px 10px; box-shadow:0 3px 0 #ddd;
+border:2px solid #ddd; flex-wrap:wrap; justify-content:center; max-width:420px;
+}
+.evo-item { display:flex; flex-direction:column; align-items:center; font-size:0.52rem; color:#aaa; font-weight:700; }
+.evo-item .evo-emoji { font-size:0.95rem; }
+
+/* Overlays */
+#overlay {
+position:fixed; inset:0; background:rgba(0,0,0,0.55);
+display:flex; align-items:center; justify-content:center; z-index:100; backdrop-filter:blur(5px);
+}
+#overlay.hidden { display:none; }
+.overlay-box {
+background:white; border-radius:26px; padding:30px 36px; text-align:center;
+box-shadow:0 10px 0 #ffb347,0 18px 40px rgba(0,0,0,0.3); border:3px solid #ffb347; max-width:340px;
+}
+.overlay-box h2 { font-family:‘Fredoka One’,cursive; font-size:2.2rem; color:#ff6b6b; margin-bottom:8px; }
+.overlay-box p { font-size:0.95rem; color:#666; margin-bottom:5px; }
+.final-score { font-size:2rem; font-weight:900; color:#ff6b6b; margin:8px 0 18px; }
+
+.btn {
+background:linear-gradient(180deg,#ff6b6b,#ff4757); color:white; border:none;
+border-radius:13px; padding:11px 28px; font-size:1rem; font-weight:800;
+font-family:‘Nunito’,sans-serif; cursor:pointer; box-shadow:0 5px 0 #c0392b;
+transition:transform 0.1s,box-shadow 0.1s; margin:4px;
+}
+.btn:hover { transform:translateY(-2px); }
+.btn:active { transform:translateY(3px); box-shadow:0 1px 0 #c0392b; }
+
+/* Shake canvas animation */
+@keyframes canvasShake {
+0%,100%{transform:translate(0,0)}
+10%{transform:translate(-30px,0)}
+20%{transform:translate(34px,0)}
+30%{transform:translate(-28px,0)}
+40%{transform:translate(30px,0)}
+50%{transform:translate(-24px,0)}
+60%{transform:translate(26px,0)}
+70%{transform:translate(-20px,0)}
+80%{transform:translate(22px,0)}
+90%{transform:translate(-12px,0)}
+}
+#gameCanvas.shaking { animation:canvasShake 0.7s ease-out; }
+
+/* Pick mode cursor overlay */
+#pickCursor {
+position:fixed; pointer-events:none; z-index:50;
+font-size:2rem; transform:translate(-50%,-50%); display:none;
+}
+
+.confetti-piece {
+position:fixed; width:10px; height:10px; border-radius:2px;
+animation:confettiFall linear forwards; pointer-events:none; z-index:200;
+}
+@keyframes confettiFall {
+0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+}
+
+/* Toast notification */
+#toast {
+position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+background:rgba(0,0,0,0.75); color:white; border-radius:20px;
+padding:8px 20px; font-size:0.85rem; font-weight:800;
+opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-space:nowrap;
+}
+#toast.show { opacity:1; }
+</style>
+
 </head>
 <body>
-    <canvas id="gameCanvas" width="410" height="500"></canvas>
-    <div id="score">Score: 0</div>
-    <script>
-        // Game variables
-        let score = 0;
-        let evolutionBar = 0;
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
 
-        // Game logic
-        function startGame() {
-            // Initialize game objects and start the game loop
-        }
+<h1>🐱 Purrfect Merge!</h1>
 
-        function updateGameArea() {
-            // Update game mechanics, check for collisions, and redraw canvas
-        }
+<div class="score-area">
+  <div class="score-box">Score: <span id="scoreDisplay">0</span></div>
+  <div class="score-box">Best: <span id="bestDisplay">0</span></div>
+  <div class="next-box">
+    <span class="next-label">Next</span>
+    <canvas id="nextCanvas" width="60" height="60"></canvas>
+  </div>
+</div>
 
-        function mergeAnimals(type1, type2) {
-            // Merge logic implementation
-        }
+<canvas id="gameCanvas" width="410" height="500"></canvas>
 
-        // More game functions such as handling power-ups, scoring, and rendering
-        startGame();
-    </script>
+<!-- Power-up bar -->
+
+<div class="powerups">
+  <button class="pu-btn" id="pu-pick" onclick="activatePick()" title="Click an animal to remove it">
+    <span class="pu-uses" id="pu-pick-uses">3</span>
+    <span class="pu-icon">🎯</span>
+    <span class="pu-label">Remove<br>One</span>
+  </button>
+  <button class="pu-btn" id="pu-shake" onclick="activateShake()" title="Shake everything and trigger merges">
+    <span class="pu-uses" id="pu-shake-uses">3</span>
+    <span class="pu-icon">🌀</span>
+    <span class="pu-label">Shake<br>& Merge</span>
+  </button>
+  <button class="pu-btn" id="pu-clear-small" onclick="activateClearSmall()" title="Remove all kittens & puppies">
+    <span class="pu-uses" id="pu-clear-small-uses">3</span>
+    <span class="pu-icon">🧹</span>
+    <span class="pu-label">Clear<br>Smallest</span>
+  </button>
+  <button class="pu-btn" id="pu-bomb" onclick="activateBomb()" title="Explode 4 random animals">
+    <span class="pu-uses" id="pu-bomb-uses">3</span>
+    <span class="pu-icon">💣</span>
+    <span class="pu-label">Bomb<br>×4</span>
+  </button>
+</div>
+
+<div class="evolution-bar" id="evoBar"></div>
+
+<div style="margin-top:6px;font-size:0.62rem;font-weight:700;color:#bbb;letter-spacing:0.5px;font-family:'Nunito',sans-serif;">Developed by: Ko9 Games</div>
+
+<!-- Start overlay -->
+
+<div id="overlay">
+  <div class="overlay-box">
+    <div style="font-size:2.8rem">🐱</div>
+    <h2>Purrfect Merge!</h2>
+    <p>Drop animals to merge matching ones!</p>
+    <p style="font-size:0.78rem;color:#aaa;margin-top:4px">Use power-ups to clear the field! 🐾</p>
+    <br>
+    <button class="btn" onclick="startGame()">Start Playing!</button>
+  </div>
+</div>
+
+<!-- Game over overlay -->
+
+<div id="overlay2" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(5px);">
+  <div class="overlay-box">
+    <div style="font-size:2.8rem">😿</div>
+    <h2>Game Over!</h2>
+    <p>The animals overflowed!</p>
+    <div class="final-score" id="finalScore">0</div>
+    <button class="btn" onclick="startGame()">Try Again</button>
+  </div>
+</div>
+
+<div id="pickCursor">🎯</div>
+<div id="toast"></div>
+
+<script>
+const ANIMALS = [
+  {emoji:'🐱', name:'Kitten',  radius:21,  points:1 },
+  {emoji:'🐶', name:'Puppy',   radius:30,  points:3 },
+  {emoji:'🐹', name:'Hamster', radius:38,  points:6 },
+  {emoji:'🐰', name:'Bunny',   radius:47,  points:10},
+  {emoji:'🦊', name:'Fox',     radius:58,  points:15},
+  {emoji:'🐻', name:'Bear',    radius:69,  points:21},
+  {emoji:'🐼', name:'Panda',   radius:81,  points:28},
+  {emoji:'🦁', name:'Lion',    radius:115, points:36},
+  {emoji:'🐯', name:'Tiger',   radius:131, points:45},
+  {emoji:'🦄', name:'Unicorn', radius:147, points:55},
+  {emoji:'🐉', name:'Dragon',     radius:167, points:70 },
+];
+
+// Build evo bar
+const evoBar = document.getElementById('evoBar');
+ANIMALS.forEach((a,i)=>{
+  const d=document.createElement('div'); d.className='evo-item';
+  d.innerHTML=`<span class="evo-emoji">${a.emoji}</span><span>${a.name}</span>`;
+  evoBar.appendChild(d);
+  if(i<ANIMALS.length-1){
+    const arr=document.createElement('div'); arr.className='evo-item';
+    arr.innerHTML=`<span class="evo-emoji" style="font-size:0.55rem">→</span>`;
+    evoBar.appendChild(arr);
+  }
+});
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const nextCanvas = document.getElementById('nextCanvas');
+const nctx = nextCanvas.getContext('2d');
+const GRAVITY=0.35, FRICTION=0.88, BOUNCE=0.25;
+const WALL_LEFT=4, WALL_RIGHT=canvas.width-4, FLOOR=canvas.height-4, DANGER_LINE=80;
+
+// ── AUDIO ─────────────────────────────────────────────────────────────
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playDrop() {
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(520, audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.12);
+  g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+  o.start(); o.stop(audioCtx.currentTime + 0.18);
+}
+
+function playMerge(tier) {
+  const now = audioCtx.currentTime;
+  const baseFreq = 180 + tier * 40;
+
+  // 1. Squelchy wobble — two detuned sines that pitch-bend into each other
+  [0, 1].forEach(i => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine';
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(6 + i * 3, now);
+    lfoGain.gain.setValueAtTime(18, now);
+    lfoGain.gain.exponentialRampToValueAtTime(2, now + 0.25);
+    const startFreq = i === 0 ? baseFreq * 1.15 : baseFreq * 0.88;
+    o.frequency.setValueAtTime(startFreq, now);
+    o.frequency.exponentialRampToValueAtTime(baseFreq, now + 0.18);
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.14, now + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    lfo.start(now); lfo.stop(now + 0.45);
+    o.start(now); o.stop(now + 0.45);
+  });
+
+  // 2. Soft "thump" sub — low punch when they collide
+  const sub = audioCtx.createOscillator();
+  const subG = audioCtx.createGain();
+  sub.connect(subG); subG.connect(audioCtx.destination);
+  sub.type = 'sine';
+  sub.frequency.setValueAtTime(baseFreq * 0.5, now);
+  sub.frequency.exponentialRampToValueAtTime(baseFreq * 0.25, now + 0.18);
+  subG.gain.setValueAtTime(0.22, now);
+  subG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+  sub.start(now); sub.stop(now + 0.22);
+
+  // 3. Sparkle overtone — brief high shimmer on merge
+  const shimmer = audioCtx.createOscillator();
+  const shimG = audioCtx.createGain();
+  shimmer.connect(shimG); shimG.connect(audioCtx.destination);
+  shimmer.type = 'triangle';
+  shimmer.frequency.setValueAtTime(baseFreq * 4, now + 0.05);
+  shimmer.frequency.exponentialRampToValueAtTime(baseFreq * 6, now + 0.2);
+  shimG.gain.setValueAtTime(0, now);
+  shimG.gain.linearRampToValueAtTime(0.06, now + 0.07);
+  shimG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+  shimmer.start(now + 0.05); shimmer.stop(now + 0.3);
+
+  // 4. Tiny "pop" noise burst at the moment of collision
+  const bufSize = audioCtx.sampleRate * 0.04;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for(let i = 0; i < bufSize; i++) data[i] = (Math.random()*2-1) * (1 - i/bufSize);
+  const noise = audioCtx.createBufferSource();
+  const noiseFilter = audioCtx.createBiquadFilter();
+  const noiseG = audioCtx.createGain();
+  noise.buffer = buf;
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(800 + tier * 120, now);
+  noiseFilter.Q.setValueAtTime(1.5, now);
+  noise.connect(noiseFilter); noiseFilter.connect(noiseG); noiseG.connect(audioCtx.destination);
+  noiseG.gain.setValueAtTime(0.18, now);
+  noiseG.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+  noise.start(now); noise.stop(now + 0.04);
+}
+
+// Resume audio context on first interaction (browser policy)
+document.addEventListener('click', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
+document.addEventListener('touchend', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
+
+let balls=[], score=0, bestScore=0, currentIdx=0, nextIdx=0;
+let dropping=false, dropX=canvas.width/2, gameActive=false;
+let particles=[], pickMode=false, shaking=false;
+let lastInputTime=0, idleWarning=false, idlePulse=0;
+
+const puUses = { pick:3, shake:3, 'clear-small':3, bomb:3 };
+
+// ── POWER-UP USES DISPLAY ──────────────────────────────────────────────
+function updatePuUI(){
+  ['pick','shake','clear-small','bomb'].forEach(id=>{
+    const uses = puUses[id];
+    document.getElementById(`pu-${id}-uses`).textContent = uses;
+    document.getElementById(`pu-${id}`).disabled = uses <= 0 || !gameActive;
+  });
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ── GAME CORE ─────────────────────────────────────────────────────────
+function randIdx(){ return Math.floor(Math.random()*4); }
+
+function startGame(){
+  balls=[]; score=0; particles=[]; pickMode=false;
+  dropping=false; gameActive=true;
+  currentIdx=randIdx(); nextIdx=randIdx();
+  lastInputTime=performance.now(); idleWarning=false;
+  puUses.pick=3; puUses.shake=3; puUses['clear-small']=3; puUses.bomb=3;
+  updatePuUI(); updateUI();
+  document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('overlay2').style.display='none';
+  document.getElementById('pickCursor').style.display='none';
+  exitPickMode();
+}
+
+function updateUI(){
+  document.getElementById('scoreDisplay').textContent=score;
+  document.getElementById('bestDisplay').textContent=bestScore;
+}
+
+function drawNextCanvas(){
+  const nw=nextCanvas.width, nh=nextCanvas.height;
+  nctx.clearRect(0,0,nw,nh);
+  if(!gameActive) return;
+  const a=ANIMALS[nextIdx];
+  const cx=nw/2, cy=nh/2;
+  const r=Math.min(a.radius, 26); // cap so it fits
+  const angle=performance.now()*0.0018;
+  nctx.save();
+  nctx.translate(cx,cy);
+  nctx.rotate(angle);
+  nctx.beginPath(); nctx.arc(0,0,r,0,Math.PI*2); nctx.clip();
+  nctx.font=`${Math.floor(r*2.05)}px serif`;
+  nctx.textAlign='center'; nctx.textBaseline='middle';
+  nctx.fillText(a.emoji,0,0);
+  nctx.restore();
+}
+
+function dropBall(){
+  if(!gameActive||dropping||pickMode)return;
+  const a=ANIMALS[currentIdx];
+  const idleAngle = performance.now()*0.0018;
+  const clampedX = Math.max(WALL_LEFT+a.radius, Math.min(WALL_RIGHT-a.radius, dropX));
+  balls.push({
+    x: clampedX,
+    y:40, vx:0, vy:0, r:a.radius, idx:currentIdx,
+    id:Date.now()+Math.random(), age:0, scale:0.3, angle:idleAngle,
+  });
+  dropping=true;
+  playDrop();
+  lastInputTime=performance.now(); idleWarning=false;
+  currentIdx=nextIdx; nextIdx=randIdx();
+  updateUI();
+  setTimeout(()=>{ dropping=false; },480);
+}
+
+// ── CANVAS EVENTS ──────────────────────────────────────────────────────
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect();
+  dropX=(e.clientX-r.left)*(canvas.width/r.width);
+  if(pickMode){
+    const cur=document.getElementById('pickCursor');
+    cur.style.left=e.clientX+'px'; cur.style.top=e.clientY+'px';
+  }
+});
+
+canvas.addEventListener('click',e=>{
+  const r=canvas.getBoundingClientRect();
+  dropX=(e.clientX-r.left)*(canvas.width/r.width);
+  if(pickMode) handlePickClick(dropX, (e.clientY-r.top)*(canvas.height/r.height));
+  else dropBall();
+});
+
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  dropX=(e.touches[0].clientX-r.left)*(canvas.width/r.width);
+},{passive:false});
+
+canvas.addEventListener('touchend',e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  dropX=(e.changedTouches[0].clientX-r.left)*(canvas.width/r.width);
+  const cy=(e.changedTouches[0].clientY-r.top)*(canvas.height/r.height);
+  if(pickMode) handlePickClick(dropX, cy);
+  else dropBall();
+},{passive:false});
+
+// ── COLLISION ──────────────────────────────────────────────────────────
+function resolveCollision(a,b){
+  const dx=b.x-a.x, dy=b.y-a.y, dist=Math.sqrt(dx*dx+dy*dy), minD=a.r+b.r;
+  if(dist<minD&&dist>0){
+    const nx=dx/dist, ny=dy/dist, ov=minD-dist;
+    a.x-=nx*ov*0.5; a.y-=ny*ov*0.5; b.x+=nx*ov*0.5; b.y+=ny*ov*0.5;
+    const rvx=b.vx-a.vx, rvy=b.vy-a.vy, dot=rvx*nx+rvy*ny;
+    if(dot<0){
+      const imp=dot*(1+BOUNCE);
+      a.vx+=imp*nx*0.5; a.vy+=imp*ny*0.5; b.vx-=imp*nx*0.5; b.vy-=imp*ny*0.5;
+    }
+  }
+}
+
+// ── PARTICLES ─────────────────────────────────────────────────────────
+function spawnBurst(x, y, emoji, big=false){
+  const scale = big?1.6:1;
+  // Shockwave rings
+  particles.push({type:'ring',x,y,r:6,life:1,color:'#ff6b6b'});
+  particles.push({type:'ring',x,y,r:3,life:0.7,color:'#fff'});
+  // Flying emoji
+  const count = big?12:8;
+  for(let i=0;i<count;i++){
+    const angle=(i/count)*Math.PI*2, speed=(2.5+Math.random()*3)*scale;
+    particles.push({type:'emoji',x,y,emoji,
+      vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed-2,
+      life:1, size:(12+Math.random()*9)*scale,
+      rot:Math.random()*Math.PI*2, rotV:(Math.random()-0.5)*0.3});
+  }
+  // Dots
+  for(let i=0;i<(big?28:18);i++){
+    const angle=Math.random()*Math.PI*2, speed=(1.5+Math.random()*5)*scale;
+    particles.push({type:'dot',x,y,
+      vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed-2,
+      life:1, color:['#ff6b6b','#ffb347','#fff','#FFD700','#ff9ff3'][Math.floor(Math.random()*5)],
+      r:(2+Math.random()*5)*scale});
+  }
+  // Stars
+  for(let i=0;i<(big?9:5);i++){
+    const angle=Math.random()*Math.PI*2, speed=(3+Math.random()*4)*scale;
+    particles.push({type:'star',x,y,
+      vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed-2,
+      life:1, color:'#FFD700', size:(8+Math.random()*8)*scale});
+  }
+}
+
+function drawStarShape(cx,cy,r,color){
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=(i*4*Math.PI/5)-Math.PI/2, b=(i*4*Math.PI/5+2*Math.PI/5)-Math.PI/2;
+    ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    ctx.lineTo(cx+Math.cos(b)*r*0.4,cy+Math.sin(b)*r*0.4);
+  }
+  ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+}
+
+// ── MERGES ────────────────────────────────────────────────────────────
+function checkMerges(){
+  const toRemove=new Set(), toAdd=[];
+  for(let i=0;i<balls.length;i++){
+    if(toRemove.has(balls[i].id))continue;
+    for(let j=i+1;j<balls.length;j++){
+      if(toRemove.has(balls[j].id))continue;
+      if(balls[i].idx!==balls[j].idx)continue;
+      if(balls[i].idx>=ANIMALS.length-1)continue;
+      const dx=balls[j].x-balls[i].x, dy=balls[j].y-balls[i].y;
+      if(Math.sqrt(dx*dx+dy*dy)<balls[i].r+balls[j].r+1){
+        const mx=(balls[i].x+balls[j].x)/2, my=(balls[i].y+balls[j].y)/2;
+        const newIdx=balls[i].idx+1;
+        score+=ANIMALS[newIdx].points;
+        if(score>bestScore)bestScore=score;
+        updateUI();
+        spawnBurst(mx,my,ANIMALS[balls[i].idx].emoji);
+        playMerge(newIdx);
+        toRemove.add(balls[i].id); toRemove.add(balls[j].id);
+        toAdd.push({
+          x:mx, y:my, vx:(balls[i].vx+balls[j].vx)*0.4,
+          vy:Math.min(-1,(balls[i].vy+balls[j].vy)*0.4),
+          r:ANIMALS[newIdx].radius, idx:newIdx,
+          id:Date.now()+Math.random(), age:0, scale:0.15, angle:0,
+        });
+        break;
+      }
+    }
+  }
+  balls=balls.filter(b=>!toRemove.has(b.id));
+  balls.push(...toAdd);
+}
+
+// ── POWER-UPS ─────────────────────────────────────────────────────────
+
+// 1. Pick & Remove One
+function activatePick(){
+  if(!gameActive||puUses.pick<=0)return;
+  pickMode=!pickMode;
+  const btn=document.getElementById('pu-pick');
+  btn.classList.toggle('pick-mode',pickMode);
+  const cur=document.getElementById('pickCursor');
+  if(pickMode){
+    canvas.style.cursor='none';
+    cur.style.display='block';
+    showToast('🎯 Click any animal to remove it!');
+  } else {
+    exitPickMode();
+  }
+}
+
+function exitPickMode(){
+  pickMode=false;
+  canvas.style.cursor='crosshair';
+  document.getElementById('pickCursor').style.display='none';
+  document.getElementById('pu-pick').classList.remove('pick-mode');
+}
+
+function handlePickClick(cx,cy){
+  // Find topmost ball under click
+  let hit=null;
+  for(let i=balls.length-1;i>=0;i--){
+    const b=balls[i];
+    const dx=cx-b.x, dy=cy-b.y;
+    if(Math.sqrt(dx*dx+dy*dy)<b.r){hit=b;break;}
+  }
+  if(hit){
+    spawnBurst(hit.x, hit.y, ANIMALS[hit.idx].emoji, true);
+    balls=balls.filter(b=>b.id!==hit.id);
+    puUses.pick--;
+    updatePuUI();
+    showToast(`💨 ${ANIMALS[hit.idx].name} removed!`);
+    exitPickMode();
+  } else {
+    showToast('⚠️ Tap on an animal!');
+  }
+}
+
+// 2. Shake & Merge
+function activateShake(){
+  if(!gameActive||puUses.shake<=0||shaking)return;
+  puUses.shake--;
+  updatePuUI();
+  shaking=true;
+  showToast('🌀 Shake it up!');
+
+  // Fling all balls horizontally only
+  balls.forEach(b=>{
+    b.vx=(Math.random()-0.5)*70;
+    b.vy=0;
+  });
+
+  // Canvas shake CSS
+  canvas.classList.add('shaking');
+  setTimeout(()=>canvas.classList.remove('shaking'),700);
+
+  // Allow merges during shake window (already in update loop)
+  setTimeout(()=>{ shaking=false; },2000);
+}
+
+// 3. Clear Smallest (kitten idx=0, puppy idx=1)
+function activateClearSmall(){
+  if(!gameActive||puUses['clear-small']<=0)return;
+  const small=balls.filter(b=>b.idx<=1);
+  if(small.length===0){ showToast('No small animals to clear!'); return; }
+  small.forEach(b=>{
+    spawnBurst(b.x, b.y, ANIMALS[b.idx].emoji);
+  });
+  balls=balls.filter(b=>b.idx>1);
+  puUses['clear-small']--;
+  updatePuUI();
+  showToast(`🧹 Cleared ${small.length} small animal${small.length>1?'s':''}!`);
+}
+
+// 4. Bomb — remove 4 random small animals
+function activateBomb(){
+  if(!gameActive||puUses.bomb<=0||balls.length===0)return;
+  const small=balls.filter(b=>b.idx<=2);
+  if(small.length===0){ showToast('No small animals to bomb!'); return; }
+  const targets=[...small].sort(()=>Math.random()-0.5).slice(0,Math.min(4,small.length));
+  const removeIds=new Set(targets.map(b=>b.id));
+
+  // Staggered explosions
+  targets.forEach((b,i)=>{
+    setTimeout(()=>{
+      spawnBurst(b.x, b.y, ANIMALS[b.idx].emoji, true);
+    }, i*120);
+  });
+
+  setTimeout(()=>{ balls=balls.filter(b=>!removeIds.has(b.id)); },80);
+
+  puUses.bomb--;
+  updatePuUI();
+  showToast(`💣 Boom! ${targets.length} animals blasted!`);
+}
+
+// ── UPDATE ────────────────────────────────────────────────────────────
+function update(){
+  for(const b of balls){
+    b.vy+=GRAVITY; b.vx*=FRICTION; b.x+=b.vx; b.y+=b.vy;
+    b.age++; b.scale=Math.min(1,b.scale+0.08);
+    const onGround = b.y+b.r >= FLOOR-1;
+    const settled = Math.abs(b.vy)<0.8 && Math.abs(b.vx)<0.8 && b.age>30;
+    if(settled){
+      // Gradually slow to a stop
+      b.angle=(b.angle||0)+b.vx/b.r*0.2;
+    } else if(onGround){
+      b.angle=(b.angle||0)+b.vx/b.r*0.75;
+    } else {
+      b.angle=(b.angle||0)+0.035;
+    }
+    if(b.x-b.r<WALL_LEFT){b.x=WALL_LEFT+b.r; b.vx=Math.abs(b.vx)*BOUNCE;}
+    if(b.x+b.r>WALL_RIGHT){b.x=WALL_RIGHT-b.r; b.vx=-Math.abs(b.vx)*BOUNCE;}
+    if(b.y+b.r>FLOOR){b.y=FLOOR-b.r; b.vy=-Math.abs(b.vy)*BOUNCE; b.vx*=0.8;}
+  }
+  for(let i=0;i<balls.length;i++)
+    for(let j=i+1;j<balls.length;j++)
+      resolveCollision(balls[i],balls[j]);
+  checkMerges();
+
+  for(const p of particles){
+    if(p.type==='ring'){p.r+=4;p.life-=0.06;}
+    else if(p.type==='emoji'){p.x+=p.vx;p.y+=p.vy;p.vy+=0.18;p.rot+=p.rotV;p.life-=0.033;}
+    else if(p.type==='star'){p.x+=p.vx;p.y+=p.vy;p.vy+=0.14;p.life-=0.028;}
+    else{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.life-=0.038;}
+  }
+  particles=particles.filter(p=>p.life>0);
+
+  // Idle warning after 5s without input
+  const idleMs = performance.now() - lastInputTime;
+  idleWarning = gameActive && !dropping && idleMs > 5000;
+  if(idleWarning) idlePulse = (Math.sin(performance.now()*0.006)+1)/2;
+
+  // Game over: box truly full — a settled ball is stuck above y=18 (near very top)
+  if(gameActive && !shaking && balls.some(b=>b.age>60 && b.y < b.r * 0.8)) gameOver();
+}
+
+// ── DRAW ──────────────────────────────────────────────────────────────
+function drawBall(b, highlight=false){
+  ctx.save();
+  ctx.translate(b.x,b.y);
+  ctx.scale(b.scale,b.scale);
+
+  // Highlight ring in pick mode
+  if(highlight){
+    ctx.beginPath(); ctx.arc(0,0,b.r+4,0,Math.PI*2);
+    ctx.strokeStyle='#ff6b6b'; ctx.lineWidth=3; ctx.stroke();
+  }
+
+  ctx.rotate(b.angle);
+  ctx.beginPath(); ctx.arc(0,0,b.r,0,Math.PI*2); ctx.clip();
+  ctx.font=`${Math.floor(b.r*2.05)}px serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(ANIMALS[b.idx].emoji,0,0);
+  ctx.restore();
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // BG
+  ctx.fillStyle='#fff9f0';
+  ctx.beginPath(); ctx.roundRect(0,0,canvas.width,canvas.height,16); ctx.fill();
+
+  // Idle warning — pulsing border glow
+  if(idleWarning){
+    const alpha=0.35+idlePulse*0.55;
+    ctx.save();
+    ctx.strokeStyle=`rgba(255,80,80,${alpha})`;
+    ctx.lineWidth=6+idlePulse*6;
+    ctx.beginPath(); ctx.roundRect(0,0,canvas.width,canvas.height,16); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Particles
+  for(const p of particles){
+    ctx.save(); ctx.globalAlpha=Math.max(0,p.life);
+    if(p.type==='ring'){
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle=p.color; ctx.lineWidth=3*p.life; ctx.stroke();
+    } else if(p.type==='emoji'){
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.font=`${p.size}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(p.emoji,0,0);
+    } else if(p.type==='star'){
+      drawStarShape(p.x,p.y,p.size,p.color);
+    } else {
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.color; ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Determine ball under cursor if in pick mode
+  let hoverBall=null;
+  if(pickMode){
+    const r=canvas.getBoundingClientRect();
+    const cx=dropX;
+    // use dropX as proxy for canvas x (we update it on mousemove)
+    for(let i=balls.length-1;i>=0;i--){
+      const b=balls[i];
+      const dx=dropX-b.x, dy=0; // approximate — we'll just highlight nearest x
+      if(Math.abs(dropX-b.x)<b.r*1.3){hoverBall=b;break;}
+    }
+  }
+
+  // Balls
+  for(const b of balls) drawBall(b, pickMode&&hoverBall&&b.id===hoverBall.id);
+
+  // Drop preview (only when not in pick mode)
+  if(gameActive&&!dropping&&!pickMode){
+    const a=ANIMALS[currentIdx];
+    const px=Math.max(WALL_LEFT+a.radius,Math.min(WALL_RIGHT-a.radius,dropX));
+    ctx.setLineDash([4,5]);
+    ctx.strokeStyle='rgba(0,0,0,0.1)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,canvas.height); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.save(); ctx.globalAlpha=0.82; ctx.translate(px,40);
+    const idleAngle = performance.now()*0.0018;
+    ctx.rotate(idleAngle);
+    ctx.beginPath(); ctx.arc(0,0,a.radius,0,Math.PI*2); ctx.clip();
+    ctx.font=`${Math.floor(a.radius*2.05)}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(a.emoji,0,0);
+    ctx.restore();
+  }
+
+  // Pick mode overlay tint
+  if(pickMode){
+    ctx.fillStyle='rgba(255,80,80,0.05)';
+    ctx.beginPath(); ctx.roundRect(0,0,canvas.width,canvas.height,16); ctx.fill();
+    ctx.font='bold 12px Nunito'; ctx.fillStyle='rgba(255,80,80,0.7)';
+    ctx.textAlign='center'; ctx.fillText('🎯 Tap an animal to remove',canvas.width/2, 30);
+  }
+
+  // Idle nudge text
+  if(idleWarning && !dropping && !pickMode){
+    const alpha=0.5+idlePulse*0.5;
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.font='bold 13px Nunito';
+    ctx.fillStyle='#ff4444';
+    ctx.textAlign='center';
+    ctx.fillText('👆 Tap to drop!', canvas.width/2, canvas.height/2 - 10);
+    ctx.restore();
+    // Pulse the canvas CSS border too
+    canvas.style.borderColor=`rgba(255,${Math.floor(60+idlePulse*40)},${Math.floor(60+idlePulse*40)},1)`;
+  } else {
+    canvas.style.borderColor='#ffb347';
+  }
+}
+
+// ── GAME OVER ─────────────────────────────────────────────────────────
+function gameOver(){
+  gameActive=false;
+  exitPickMode();
+  updatePuUI();
+  document.getElementById('finalScore').textContent=score;
+  document.getElementById('overlay2').style.display='flex';
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors=['#ff6b6b','#ffb347','#ffd32a','#0be881','#17c0eb','#ff9ff3'];
+  for(let i=0;i<40;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div'); el.className='confetti-piece';
+      el.style.left=Math.random()*100+'vw'; el.style.top='-20px';
+      el.style.background=colors[Math.floor(Math.random()*colors.length)];
+      el.style.animationDuration=(1.5+Math.random()*2)+'s';
+      el.style.animationDelay=(Math.random()*0.5)+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    },i*50);
+  }
+}
+
+// ── LOOP ──────────────────────────────────────────────────────────────
+function loop(){ if(gameActive)update(); draw(); drawNextCanvas(); requestAnimationFrame(loop); }
+
+updatePuUI();
+loop();
+</script>
+
 </body>
 </html>
