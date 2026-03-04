@@ -191,13 +191,38 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 <!-- Start overlay -->
 
 <div id="overlay">
-  <div class="overlay-box">
-    <div style="font-size:2.8rem">🐱</div>
-    <h2>Purrfect Merge!</h2>
-    <p>Drop animals to merge matching ones!</p>
-    <p style="font-size:0.78rem;color:#aaa;margin-top:4px">Use power-ups to clear the field! 🐾</p>
-    <br>
-    <button class="btn" onclick="startGame()">Start Playing!</button>
+  <div class="overlay-box" style="position:relative;padding:28px 32px 24px;max-width:360px;width:90vw;">
+
+```
+<!-- Animals ring top -->
+<div style="display:flex;justify-content:center;gap:2px;margin-bottom:6px;flex-wrap:wrap;">
+  <span style="font-size:1.9rem">🐱</span>
+  <span style="font-size:1.9rem">🐶</span>
+  <span style="font-size:1.9rem">🐹</span>
+  <span style="font-size:1.9rem">🐰</span>
+  <span style="font-size:1.9rem">🦊</span>
+  <span style="font-size:1.9rem">🐻</span>
+</div>
+
+<!-- Center message -->
+<h2 style="font-size:1.9rem;margin-bottom:4px">Purrfect Merge!</h2>
+<p>Merge matching animals to evolve!</p>
+<p style="font-size:0.75rem;color:#aaa;margin-top:4px">Use power-ups to clear the field 🐾</p>
+<br>
+<p style="font-size:0.8rem;font-weight:800;color:#4a90d9;margin-bottom:8px;letter-spacing:0.3px;">Powered by Ko9 Games</p>
+<button class="btn" onclick="startGame()">Start Playing!</button>
+
+<!-- Animals ring bottom -->
+<div style="display:flex;justify-content:center;gap:2px;margin-top:10px;flex-wrap:wrap;">
+  <span style="font-size:1.9rem">🐼</span>
+  <span style="font-size:1.9rem">🦁</span>
+  <span style="font-size:1.9rem">🐯</span>
+  <span style="font-size:1.9rem">🦄</span>
+  <span style="font-size:1.9rem">🐉</span>
+  <span style="font-size:1.9rem">🔥</span>
+</div>
+```
+
   </div>
 </div>
 
@@ -231,17 +256,17 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <script>
 const ANIMALS = [
-  {emoji:'🐱', name:'Kitten',  radius:15,  points:1 },
-  {emoji:'🐶', name:'Puppy',   radius:22,  points:3 },
-  {emoji:'🐹', name:'Hamster', radius:27,  points:6 },
-  {emoji:'🐰', name:'Bunny',   radius:34,  points:10},
-  {emoji:'🦊', name:'Fox',     radius:41,  points:15},
-  {emoji:'🐻', name:'Bear',    radius:50,  points:21},
-  {emoji:'🐼', name:'Panda',   radius:58,  points:28},
-  {emoji:'🦁', name:'Lion',    radius:83, points:36},
-  {emoji:'🐯', name:'Tiger',   radius:94, points:45},
-  {emoji:'🦄', name:'Unicorn', radius:106, points:55},
-  {emoji:'🐉', name:'Dragon',     radius:121, points:70 },
+  {emoji:'🐱', name:'Kitten',  radius:16,  points:1 },
+  {emoji:'🐶', name:'Puppy',   radius:23,  points:3 },
+  {emoji:'🐹', name:'Hamster', radius:28,  points:6 },
+  {emoji:'🐰', name:'Bunny',   radius:36,  points:10},
+  {emoji:'🦊', name:'Fox',     radius:43,  points:15},
+  {emoji:'🐻', name:'Bear',    radius:52,  points:21},
+  {emoji:'🐼', name:'Panda',   radius:61,  points:28},
+  {emoji:'🦁', name:'Lion',    radius:87, points:36},
+  {emoji:'🐯', name:'Tiger',   radius:99, points:45},
+  {emoji:'🦄', name:'Unicorn', radius:111, points:55},
+  {emoji:'🐉', name:'Dragon',     radius:127, points:70 },
 ];
 
 
@@ -389,6 +414,97 @@ function playMerge(tier) {
 document.addEventListener('click', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
 document.addEventListener('touchend', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
 
+function playPowerUp(type) {
+  const now = audioCtx.currentTime;
+  if(type === 'pick') {
+    // Soft "select" blip
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, now);
+    o.frequency.setValueAtTime(1100, now + 0.07);
+    g.gain.setValueAtTime(0.12, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    o.start(now); o.stop(now + 0.18);
+  } else if(type === 'shake') {
+    // Rumble + swish
+    [80, 120, 160].forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(f, now + i*0.03);
+      o.frequency.exponentialRampToValueAtTime(f*0.4, now + 0.3);
+      g.gain.setValueAtTime(0.07, now + i*0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      o.start(now + i*0.03); o.stop(now + 0.35);
+    });
+  } else if(type === 'clear-small') {
+    // Sweeping whoosh upward
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(300, now);
+    o.frequency.exponentialRampToValueAtTime(1200, now + 0.25);
+    g.gain.setValueAtTime(0.14, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    o.start(now); o.stop(now + 0.3);
+  } else if(type === 'bomb') {
+    // Deep thud + crackle
+    const sub = audioCtx.createOscillator();
+    const subG = audioCtx.createGain();
+    sub.connect(subG); subG.connect(audioCtx.destination);
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(120, now);
+    sub.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+    subG.gain.setValueAtTime(0.3, now);
+    subG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    sub.start(now); sub.stop(now + 0.35);
+    // Crackle noise
+    const bufSize = audioCtx.sampleRate * 0.15;
+    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i = 0; i < bufSize; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufSize, 2);
+    const ns = audioCtx.createBufferSource();
+    const nf = audioCtx.createBiquadFilter();
+    const ng = audioCtx.createGain();
+    ns.buffer = buf; nf.type = 'lowpass'; nf.frequency.value = 2000;
+    ns.connect(nf); nf.connect(ng); ng.connect(audioCtx.destination);
+    ng.gain.setValueAtTime(0.25, now); ng.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    ns.start(now); ns.stop(now + 0.15);
+  }
+}
+
+function playWin() {
+  const now = audioCtx.currentTime;
+  // Triumphant ascending fanfare
+  const notes = [523, 659, 784, 1047, 1319];
+  notes.forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(freq, now + i*0.13);
+    g.gain.setValueAtTime(0, now + i*0.13);
+    g.gain.linearRampToValueAtTime(0.18, now + i*0.13 + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.001, now + i*0.13 + 0.5);
+    o.start(now + i*0.13); o.stop(now + i*0.13 + 0.5);
+  });
+  // Shimmer underneath
+  [1047, 1319, 1568].forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, now + 0.5 + i*0.1);
+    g.gain.setValueAtTime(0.08, now + 0.5 + i*0.1);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+    o.start(now + 0.5 + i*0.1); o.stop(now + 1.5);
+  });
+}
+
 let balls=[], score=0, bestScore=0, currentIdx=0, nextIdx=0;
 let dropping=false, gameActive=false;
 let particles=[], pickMode=false, shaking=false;
@@ -418,7 +534,7 @@ function showToast(msg){
 function randIdx(){ return Math.floor(Math.random()*4); }
 
 function startGame(){
-  balls=[]; score=0; particles=[]; pickMode=false;
+  balls=[]; score=0; particles=[]; pickMode=false; waitingForWinTap=false;
   dropping=false; gameActive=true;
   currentIdx=randIdx(); nextIdx=randIdx();
   lastInputTime=performance.now(); idleWarning=false;
@@ -485,6 +601,7 @@ canvas.addEventListener('mousemove',e=>{
 canvas.addEventListener('click',e=>{
   const r=canvas.getBoundingClientRect();
   dropX=(e.clientX-r.left)*(canvas.width/r.width);
+  if(waitingForWinTap){ youWin(); return; }
   if(pickMode) handlePickClick(dropX, (e.clientY-r.top)*(canvas.height/r.height));
   else dropBall();
 });
@@ -500,6 +617,7 @@ canvas.addEventListener('touchend',e=>{
   const r=canvas.getBoundingClientRect();
   dropX=(e.changedTouches[0].clientX-r.left)*(canvas.width/r.width);
   const cy=(e.changedTouches[0].clientY-r.top)*(canvas.height/r.height);
+  if(waitingForWinTap){ youWin(); return; }
   if(pickMode) handlePickClick(dropX, cy);
   else dropBall();
 },{passive:false});
@@ -578,7 +696,7 @@ function checkMerges(){
         updateUI();
         spawnBurst(mx,my,ANIMALS[balls[i].idx].emoji);
         playMerge(newIdx);
-        if(newIdx === ANIMALS.length-1) setTimeout(()=>youWin(), 600);
+        if(newIdx === ANIMALS.length-1) setTimeout(()=>waitForWinTap(), 600);
         toRemove.add(balls[i].id); toRemove.add(balls[j].id);
         toAdd.push({
           x:mx, y:my, vx:(balls[i].vx+balls[j].vx)*0.4,
@@ -599,6 +717,7 @@ function checkMerges(){
 // 1. Pick & Remove One
 function activatePick(){
   if(!gameActive||puUses.pick<=0)return;
+  playPowerUp('pick');
   pickMode=!pickMode;
   const btn=document.getElementById('pu-pick');
   btn.classList.toggle('pick-mode',pickMode);
@@ -642,6 +761,7 @@ function handlePickClick(cx,cy){
 // 2. Shake & Merge
 function activateShake(){
   if(!gameActive||puUses.shake<=0||shaking)return;
+  playPowerUp('shake');
   puUses.shake--;
   updatePuUI();
   shaking=true;
@@ -666,6 +786,7 @@ function activateClearSmall(){
   if(!gameActive||puUses['clear-small']<=0)return;
   const small=balls.filter(b=>b.idx<=1);
   if(small.length===0){ showToast('No small animals to clear!'); return; }
+  playPowerUp('clear-small');
   small.forEach(b=>{
     spawnBurst(b.x, b.y, ANIMALS[b.idx].emoji);
   });
@@ -680,6 +801,7 @@ function activateBomb(){
   if(!gameActive||puUses.bomb<=0||balls.length===0)return;
   const small=balls.filter(b=>b.idx<=2);
   if(small.length===0){ showToast('No small animals to bomb!'); return; }
+  playPowerUp('bomb');
   const targets=[...small].sort(()=>Math.random()-0.5).slice(0,Math.min(4,small.length));
   const removeIds=new Set(targets.map(b=>b.id));
 
@@ -837,8 +959,17 @@ function draw(){
     ctx.textAlign='center'; ctx.fillText('🎯 Tap an animal to remove',canvas.width/2, 30);
   }
 
-  // Idle nudge text
-  if(idleWarning && !dropping && !pickMode){
+  // Win tap prompt
+  if(waitingForWinTap){
+    const alpha = (Math.sin(performance.now()*0.004)+1)/2 * 0.8 + 0.2;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font='bold 16px Nunito';
+    ctx.fillStyle='#e6ac00';
+    ctx.textAlign='center';
+    ctx.fillText('🐉 Tap to celebrate!', canvas.width/2, canvas.height/2);
+    ctx.restore();
+  }  if(idleWarning && !dropping && !pickMode){
     const alpha=0.5+idlePulse*0.5;
     ctx.save();
     ctx.globalAlpha=alpha;
@@ -855,7 +986,16 @@ function draw(){
 }
 
 // ── YOU WIN ───────────────────────────────────────────────────────────
+let waitingForWinTap = false;
+
+function waitForWinTap(){
+  waitingForWinTap = true;
+  playWin();
+  showToast('🐉 Tap anywhere to celebrate!');
+}
+
 function youWin(){
+  waitingForWinTap = false;
   gameActive=false;
   exitPickMode();
   updatePuUI();
