@@ -47,7 +47,7 @@ border:3px solid #ffb347;
 
 /* ── POWER-UPS ── */
 .powerups {
-display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; justify-content:center; max-width:420px;
+display:flex; gap:5px; margin-top:14px; flex-wrap:wrap; justify-content:center; max-width:420px;
 }
 .pu-btn {
 display:flex; flex-direction:column; align-items:center;
@@ -164,22 +164,22 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <div class="powerups">
   <button class="pu-btn" id="pu-pick" onclick="activatePick()" title="Click an animal to remove it">
-    <span class="pu-uses" id="pu-pick-uses">3</span>
+    <span class="pu-uses" id="pu-pick-uses">10</span>
     <span class="pu-icon">🎯</span>
     <span class="pu-label">Remove<br>One</span>
   </button>
   <button class="pu-btn" id="pu-shake" onclick="activateShake()" title="Shake everything and trigger merges">
-    <span class="pu-uses" id="pu-shake-uses">3</span>
+    <span class="pu-uses" id="pu-shake-uses">10</span>
     <span class="pu-icon">🌀</span>
     <span class="pu-label">Shake<br>& Merge</span>
   </button>
   <button class="pu-btn" id="pu-clear-small" onclick="activateClearSmall()" title="Remove all kittens & puppies">
-    <span class="pu-uses" id="pu-clear-small-uses">3</span>
+    <span class="pu-uses" id="pu-clear-small-uses">10</span>
     <span class="pu-icon">🧹</span>
     <span class="pu-label">Clear<br>Smallest</span>
   </button>
   <button class="pu-btn" id="pu-bomb" onclick="activateBomb()" title="Explode 4 random animals">
-    <span class="pu-uses" id="pu-bomb-uses">3</span>
+    <span class="pu-uses" id="pu-bomb-uses">10</span>
     <span class="pu-icon">💣</span>
     <span class="pu-label">Bomb<br>×4</span>
   </button>
@@ -200,6 +200,19 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
   </div>
 </div>
 
+<!-- Win overlay -->
+
+<div id="overlay3" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(5px);">
+  <div class="overlay-box" style="border-color:#FFD700;box-shadow:0 10px 0 #e6ac00,0 18px 40px rgba(0,0,0,0.3);">
+    <div style="font-size:7rem;line-height:1;margin-bottom:4px">🐉</div>
+    <h2 style="color:#e6ac00;font-size:2.8rem;margin-bottom:4px">You Win!</h2>
+    <p style="font-size:1rem;color:#888;margin-bottom:4px">You reached the Dragon! 🎉</p>
+    <p style="font-size:0.85rem;color:#aaa;margin-bottom:2px">Your Score</p>
+    <div class="final-score" id="winScore" style="color:#e6ac00;font-size:3rem;margin:4px 0 18px">0</div>
+    <button class="btn" style="background:linear-gradient(180deg,#FFD700,#e6ac00);box-shadow:0 5px 0 #b8860b;" onclick="startGame()">Play Again</button>
+  </div>
+</div>
+
 <!-- Game over overlay -->
 
 <div id="overlay2" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(5px);">
@@ -217,17 +230,17 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <script>
 const ANIMALS = [
-  {emoji:'🐱', name:'Kitten',  radius:21,  points:1 },
-  {emoji:'🐶', name:'Puppy',   radius:30,  points:3 },
-  {emoji:'🐹', name:'Hamster', radius:38,  points:6 },
-  {emoji:'🐰', name:'Bunny',   radius:47,  points:10},
-  {emoji:'🦊', name:'Fox',     radius:58,  points:15},
-  {emoji:'🐻', name:'Bear',    radius:69,  points:21},
-  {emoji:'🐼', name:'Panda',   radius:81,  points:28},
-  {emoji:'🦁', name:'Lion',    radius:115, points:36},
-  {emoji:'🐯', name:'Tiger',   radius:131, points:45},
-  {emoji:'🦄', name:'Unicorn', radius:147, points:55},
-  {emoji:'🐉', name:'Dragon',     radius:167, points:70 },
+  {emoji:'🐱', name:'Kitten',  radius:17,  points:1 },
+  {emoji:'🐶', name:'Puppy',   radius:24,  points:3 },
+  {emoji:'🐹', name:'Hamster', radius:30,  points:6 },
+  {emoji:'🐰', name:'Bunny',   radius:38,  points:10},
+  {emoji:'🦊', name:'Fox',     radius:46,  points:15},
+  {emoji:'🐻', name:'Bear',    radius:55,  points:21},
+  {emoji:'🐼', name:'Panda',   radius:65,  points:28},
+  {emoji:'🦁', name:'Lion',    radius:92, points:36},
+  {emoji:'🐯', name:'Tiger',   radius:105, points:45},
+  {emoji:'🦄', name:'Unicorn', radius:118, points:55},
+  {emoji:'🐉', name:'Dragon',     radius:134, points:70 },
 ];
 
 
@@ -386,8 +399,8 @@ const puUses = { pick:3, shake:3, 'clear-small':3, bomb:3 };
 function updatePuUI(){
   ['pick','shake','clear-small','bomb'].forEach(id=>{
     const uses = puUses[id];
-    document.getElementById(`pu-${id}-uses`).textContent = uses;
-    document.getElementById(`pu-${id}`).disabled = uses <= 0 || !gameActive;
+    document.getElementById(pu-${id}-uses).textContent = uses;
+    document.getElementById(pu-${id}).disabled = uses <= 0 || !gameActive;
   });
 }
 
@@ -408,10 +421,11 @@ function startGame(){
   dropping=false; gameActive=true;
   currentIdx=randIdx(); nextIdx=randIdx();
   lastInputTime=performance.now(); idleWarning=false;
-  puUses.pick=3; puUses.shake=3; puUses['clear-small']=3; puUses.bomb=3;
+  puUses.pick=10; puUses.shake=10; puUses['clear-small']=10; puUses.bomb=10;
   updatePuUI(); updateUI();
   document.getElementById('overlay').classList.add('hidden');
   document.getElementById('overlay2').style.display='none';
+  document.getElementById('overlay3').style.display='none';
   document.getElementById('pickCursor').style.display='none';
   exitPickMode();
 }
@@ -433,7 +447,7 @@ function drawNextCanvas(){
   nctx.translate(cx,cy);
   nctx.rotate(angle);
   nctx.beginPath(); nctx.arc(0,0,r,0,Math.PI*2); nctx.clip();
-  nctx.font=`${Math.floor(r*2.05)}px serif`;
+  nctx.font=${Math.floor(r*2.05)}px serif;
   nctx.textAlign='center'; nctx.textBaseline='middle';
   nctx.fillText(a.emoji,0,0);
   nctx.restore();
@@ -563,6 +577,7 @@ function checkMerges(){
         updateUI();
         spawnBurst(mx,my,ANIMALS[balls[i].idx].emoji);
         playMerge(newIdx);
+        if(newIdx === ANIMALS.length-1) setTimeout(()=>youWin(), 600);
         toRemove.add(balls[i].id); toRemove.add(balls[j].id);
         toAdd.push({
           x:mx, y:my, vx:(balls[i].vx+balls[j].vx)*0.4,
@@ -616,7 +631,7 @@ function handlePickClick(cx,cy){
     balls=balls.filter(b=>b.id!==hit.id);
     puUses.pick--;
     updatePuUI();
-    showToast(`💨 ${ANIMALS[hit.idx].name} removed!`);
+    showToast(💨 ${ANIMALS[hit.idx].name} removed!);
     exitPickMode();
   } else {
     showToast('⚠️ Tap on an animal!');
@@ -656,7 +671,7 @@ function activateClearSmall(){
   balls=balls.filter(b=>b.idx>1);
   puUses['clear-small']--;
   updatePuUI();
-  showToast(`🧹 Cleared ${small.length} small animal${small.length>1?'s':''}!`);
+  showToast(🧹 Cleared ${small.length} small animal${small.length>1?'s':''}!);
 }
 
 // 4. Bomb — remove 4 random small animals
@@ -678,7 +693,7 @@ function activateBomb(){
 
   puUses.bomb--;
   updatePuUI();
-  showToast(`💣 Boom! ${targets.length} animals blasted!`);
+  showToast(💣 Boom! ${targets.length} animals blasted!);
 }
 
 // ── UPDATE ────────────────────────────────────────────────────────────
@@ -690,15 +705,15 @@ function update(){
     const settled = Math.abs(b.vy)<0.8 && Math.abs(b.vx)<0.8 && b.age>30;
     if(settled){
       // Gradually slow to a stop
-      b.angle=(b.angle||0)+b.vx/b.r*0.2;
+      b.angle=(b.angle||0)+b.vx/b.r*0.1;
     } else if(onGround){
-      b.angle=(b.angle||0)+b.vx/b.r*0.75;
+      b.angle=(b.angle||0)+b.vx/b.r*0.375;
     } else {
-      b.angle=(b.angle||0)+0.035;
+      b.angle=(b.angle||0)+0.018;
     }
     if(b.x-b.r<WALL_LEFT){b.x=WALL_LEFT+b.r; b.vx=Math.abs(b.vx)*BOUNCE;}
     if(b.x+b.r>WALL_RIGHT){b.x=WALL_RIGHT-b.r; b.vx=-Math.abs(b.vx)*BOUNCE;}
-    if(b.y+b.r>FLOOR){b.y=FLOOR-b.r; b.vy=-Math.abs(b.vy)*BOUNCE; b.vx*=0.8;}
+    if(b.y+b.r>FLOOR){b.y=FLOOR-b.r; b.vy=-Math.abs(b.vy)BOUNCE; b.vx=0.8;}
   }
   for(let i=0;i<balls.length;i++)
     for(let j=i+1;j<balls.length;j++)
@@ -736,7 +751,7 @@ function drawBall(b, highlight=false){
 
   ctx.rotate(b.angle);
   ctx.beginPath(); ctx.arc(0,0,b.r,0,Math.PI*2); ctx.clip();
-  ctx.font=`${Math.floor(b.r*2.05)}px serif`;
+  ctx.font=${Math.floor(b.r*2.05)}px serif;
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(ANIMALS[b.idx].emoji,0,0);
   ctx.restore();
@@ -753,7 +768,7 @@ function draw(){
   if(idleWarning){
     const alpha=0.35+idlePulse*0.55;
     ctx.save();
-    ctx.strokeStyle=`rgba(255,80,80,${alpha})`;
+    ctx.strokeStyle=rgba(255,80,80,${alpha});
     ctx.lineWidth=6+idlePulse*6;
     ctx.beginPath(); ctx.roundRect(0,0,canvas.width,canvas.height,16); ctx.stroke();
     ctx.restore();
@@ -767,7 +782,7 @@ function draw(){
       ctx.strokeStyle=p.color; ctx.lineWidth=3*p.life; ctx.stroke();
     } else if(p.type==='emoji'){
       ctx.translate(p.x,p.y); ctx.rotate(p.rot);
-      ctx.font=`${p.size}px serif`;
+      ctx.font=${p.size}px serif;
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(p.emoji,0,0);
     } else if(p.type==='star'){
@@ -807,7 +822,7 @@ function draw(){
     const idleAngle = performance.now()*0.0018;
     ctx.rotate(idleAngle);
     ctx.beginPath(); ctx.arc(0,0,a.radius,0,Math.PI*2); ctx.clip();
-    ctx.font=`${Math.floor(a.radius*2.05)}px serif`;
+    ctx.font=${Math.floor(a.radius*2.05)}px serif;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(a.emoji,0,0);
     ctx.restore();
@@ -832,10 +847,20 @@ function draw(){
     ctx.fillText('👆 Tap to drop!', canvas.width/2, canvas.height/2 - 10);
     ctx.restore();
     // Pulse the canvas CSS border too
-    canvas.style.borderColor=`rgba(255,${Math.floor(60+idlePulse*40)},${Math.floor(60+idlePulse*40)},1)`;
+    canvas.style.borderColor=rgba(255,${Math.floor(60+idlePulse*40)},${Math.floor(60+idlePulse*40)},1);
   } else {
     canvas.style.borderColor='#ffb347';
   }
+}
+
+// ── YOU WIN ───────────────────────────────────────────────────────────
+function youWin(){
+  gameActive=false;
+  exitPickMode();
+  updatePuUI();
+  document.getElementById('winScore').textContent=score;
+  document.getElementById('overlay3').style.display='flex';
+  launchConfetti();
 }
 
 // ── GAME OVER ─────────────────────────────────────────────────────────
