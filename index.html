@@ -18,7 +18,7 @@ padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset
 }
 
 h1 {
-font-family:‘Fredoka One’,cursive; font-size:clamp(1.2rem,4vw,2.2rem);
+font-family:‘Fredoka One’,cursive; font-size:9vw;
 color:#ff6b6b; text-shadow:3px 3px 0 #fff,5px 5px 0 #ffb347;
 margin-bottom:4px; line-height:1;
 }
@@ -198,13 +198,17 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <div id="couponModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(5px);">
   <div style="background:white;border-radius:22px;padding:26px 30px;text-align:center;box-shadow:0 10px 0 #a29bfe,0 18px 40px rgba(0,0,0,0.3);border:3px solid #a29bfe;max-width:300px;width:85vw;">
-    <div style="font-size:2.5rem;margin-bottom:6px">🎟️</div>
-    <h3 style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:#6c5ce7;margin-bottom:8px">Enter Coupon</h3>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:2rem">🎟️</span>
+      <h3 style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:#6c5ce7;margin:0">Enter Coupon</h3>
+    </div>
     <input id="couponInput" type="text" placeholder="Type code here..."
       style="width:100%;padding:10px 14px;border-radius:12px;border:2px solid #a29bfe;font-size:1rem;font-family:'Nunito',sans-serif;font-weight:800;text-align:center;outline:none;margin-bottom:10px;text-transform:uppercase;letter-spacing:2px;">
     <div id="couponMsg" style="font-size:0.82rem;font-weight:800;min-height:18px;margin-bottom:10px;"></div>
-    <button class="btn" style="background:linear-gradient(180deg,#a29bfe,#6c5ce7);box-shadow:0 5px 0 #4a3ab5;" onclick="redeemCoupon()">Redeem</button>
-    <button class="btn" style="background:linear-gradient(180deg,#b2bec3,#636e72);box-shadow:0 5px 0 #2d3436;margin-top:4px;" onclick="closeCoupon()">Cancel</button>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button class="btn" style="background:linear-gradient(180deg,#b2bec3,#636e72);box-shadow:0 5px 0 #2d3436;flex:1;" onclick="closeCoupon()">Cancel</button>
+      <button class="btn" style="background:linear-gradient(180deg,#a29bfe,#6c5ce7);box-shadow:0 5px 0 #4a3ab5;flex:1;" onclick="redeemCoupon()">Redeem</button>
+    </div>
   </div>
 </div>
 
@@ -556,7 +560,7 @@ function showToast(msg){
 function randIdx(){ return Math.floor(Math.random()*4); }
 
 function startGame(){
-  balls=[]; score=0; particles=[]; pickMode=false; waitingForWinTap=false;
+  balls=[]; score=0; particles=[]; pickMode=false; waitingForWinTap=false; waitingForGameOver=false;
   dropping=false; gameActive=true;
   currentIdx=randIdx(); nextIdx=randIdx();
   lastInputTime=performance.now(); idleWarning=false;
@@ -579,7 +583,7 @@ function updateUI(){
 function drawNextCanvas(){
   const nw=nextCanvas.width, nh=nextCanvas.height;
   nctx.clearRect(0,0,nw,nh);
-  if(!gameActive || waitingForWinTap) return;
+  if(!gameActive || waitingForWinTap || waitingForGameOver) return;
   const a=ANIMALS[nextIdx];
   const cx=nw/2, cy=nh/2;
   const r=Math.floor(Math.min(nw,nh)/2) - 3; // always fits with 3px padding
@@ -964,8 +968,8 @@ function draw(){
   // Balls
   for(const b of balls) drawBall(b, pickMode&&hoverBall&&b.id===hoverBall.id);
 
-  // Drop preview (only when not in pick mode or waiting for win tap)
-  if(gameActive&&!dropping&&!pickMode&&!waitingForWinTap){
+  // Drop preview (only when not in pick mode or waiting for win/game over)
+  if(gameActive&&!dropping&&!pickMode&&!waitingForWinTap&&!waitingForGameOver){
     const a=ANIMALS[currentIdx];
     const px=Math.max(WALL_LEFT+a.radius,Math.min(WALL_RIGHT-a.radius,dropX));
     ctx.setLineDash([4,5]);
@@ -1023,7 +1027,7 @@ function draw(){
     ctx.textAlign='center';
     ctx.shadowColor='rgba(0,0,0,0.3)';
     ctx.shadowBlur=6;
-    ctx.fillText('🐉 Tap to celebrate!', canvas.width/2, 40);
+    ctx.fillText('🐉 Tap to continue!', canvas.width/2, 40);
     ctx.restore();
   }
 
@@ -1040,6 +1044,15 @@ function draw(){
     canvas.style.borderColor=`rgba(255,${Math.floor(60+idlePulse*40)},${Math.floor(60+idlePulse*40)},1)`;
   } else {
     canvas.style.borderColor='#ffb347';
+  }
+
+  // Grey out canvas when waiting for game over
+  if(waitingForGameOver){
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
   }
 }
 
@@ -1058,7 +1071,7 @@ function waitForWinTap(){
     document.getElementById(`pu-${id}`).disabled = true;
   });
   playWin();
-  showToast('🐉 Tap anywhere to celebrate!');
+  showToast('🐉 Tap anywhere to continue!');
 
   // Blast remaining animals one by one with delay
   const nonDragons = balls.filter(b => b.idx !== ANIMALS.length - 1);
@@ -1235,14 +1248,23 @@ function playGameOver() {
   sub.start(now + 0.75); sub.stop(now + 1.2);
 }
 
+let waitingForGameOver = false;
+
 function gameOver(){
   gameActive=false;
+  waitingForGameOver = true;
   exitPickMode();
-  updatePuUI();
+  // Disable all power-ups immediately
+  ['pick','shake','clear-small','bomb','upgrade'].forEach(id=>{
+    document.getElementById(`pu-${id}`).disabled = true;
+  });
   playGameOver();
-  document.getElementById('finalScore').textContent=score;
-  document.getElementById('overlay2').style.display='flex';
-  launchConfetti();
+  // Wait before showing game over overlay
+  setTimeout(()=>{
+    waitingForGameOver = false;
+    document.getElementById('finalScore').textContent=score;
+    document.getElementById('overlay2').style.display='flex';
+  }, 5000);
 }
 
 function launchConfetti(){
