@@ -399,8 +399,8 @@ const puUses = { pick:3, shake:3, 'clear-small':3, bomb:3 };
 function updatePuUI(){
   ['pick','shake','clear-small','bomb'].forEach(id=>{
     const uses = puUses[id];
-    document.getElementById(pu-${id}-uses).textContent = uses;
-    document.getElementById(pu-${id}).disabled = uses <= 0 || !gameActive;
+    document.getElementById(`pu-${id}-uses`).textContent = uses;
+    document.getElementById(`pu-${id}`).disabled = uses <= 0 || !gameActive;
   });
 }
 
@@ -447,7 +447,7 @@ function drawNextCanvas(){
   nctx.translate(cx,cy);
   nctx.rotate(angle);
   nctx.beginPath(); nctx.arc(0,0,r,0,Math.PI*2); nctx.clip();
-  nctx.font=${Math.floor(r*2.05)}px serif;
+  nctx.font=`${Math.floor(r*2.05)}px serif`;
   nctx.textAlign='center'; nctx.textBaseline='middle';
   nctx.fillText(a.emoji,0,0);
   nctx.restore();
@@ -631,7 +631,7 @@ function handlePickClick(cx,cy){
     balls=balls.filter(b=>b.id!==hit.id);
     puUses.pick--;
     updatePuUI();
-    showToast(💨 ${ANIMALS[hit.idx].name} removed!);
+    showToast(`💨 ${ANIMALS[hit.idx].name} removed!`);
     exitPickMode();
   } else {
     showToast('⚠️ Tap on an animal!');
@@ -671,7 +671,7 @@ function activateClearSmall(){
   balls=balls.filter(b=>b.idx>1);
   puUses['clear-small']--;
   updatePuUI();
-  showToast(🧹 Cleared ${small.length} small animal${small.length>1?'s':''}!);
+  showToast(`🧹 Cleared ${small.length} small animal${small.length>1?'s':''}!`);
 }
 
 // 4. Bomb — remove 4 random small animals
@@ -693,7 +693,7 @@ function activateBomb(){
 
   puUses.bomb--;
   updatePuUI();
-  showToast(💣 Boom! ${targets.length} animals blasted!);
+  showToast(`💣 Boom! ${targets.length} animals blasted!`);
 }
 
 // ── UPDATE ────────────────────────────────────────────────────────────
@@ -713,7 +713,7 @@ function update(){
     }
     if(b.x-b.r<WALL_LEFT){b.x=WALL_LEFT+b.r; b.vx=Math.abs(b.vx)*BOUNCE;}
     if(b.x+b.r>WALL_RIGHT){b.x=WALL_RIGHT-b.r; b.vx=-Math.abs(b.vx)*BOUNCE;}
-    if(b.y+b.r>FLOOR){b.y=FLOOR-b.r; b.vy=-Math.abs(b.vy)BOUNCE; b.vx=0.8;}
+    if(b.y+b.r>FLOOR){b.y=FLOOR-b.r; b.vy=-Math.abs(b.vy)*BOUNCE; b.vx*=0.8;}
   }
   for(let i=0;i<balls.length;i++)
     for(let j=i+1;j<balls.length;j++)
@@ -751,7 +751,7 @@ function drawBall(b, highlight=false){
 
   ctx.rotate(b.angle);
   ctx.beginPath(); ctx.arc(0,0,b.r,0,Math.PI*2); ctx.clip();
-  ctx.font=${Math.floor(b.r*2.05)}px serif;
+  ctx.font=`${Math.floor(b.r*2.05)}px serif`;
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(ANIMALS[b.idx].emoji,0,0);
   ctx.restore();
@@ -768,7 +768,7 @@ function draw(){
   if(idleWarning){
     const alpha=0.35+idlePulse*0.55;
     ctx.save();
-    ctx.strokeStyle=rgba(255,80,80,${alpha});
+    ctx.strokeStyle=`rgba(255,80,80,${alpha})`;
     ctx.lineWidth=6+idlePulse*6;
     ctx.beginPath(); ctx.roundRect(0,0,canvas.width,canvas.height,16); ctx.stroke();
     ctx.restore();
@@ -782,7 +782,7 @@ function draw(){
       ctx.strokeStyle=p.color; ctx.lineWidth=3*p.life; ctx.stroke();
     } else if(p.type==='emoji'){
       ctx.translate(p.x,p.y); ctx.rotate(p.rot);
-      ctx.font=${p.size}px serif;
+      ctx.font=`${p.size}px serif`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(p.emoji,0,0);
     } else if(p.type==='star'){
@@ -822,7 +822,7 @@ function draw(){
     const idleAngle = performance.now()*0.0018;
     ctx.rotate(idleAngle);
     ctx.beginPath(); ctx.arc(0,0,a.radius,0,Math.PI*2); ctx.clip();
-    ctx.font=${Math.floor(a.radius*2.05)}px serif;
+    ctx.font=`${Math.floor(a.radius*2.05)}px serif`;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(a.emoji,0,0);
     ctx.restore();
@@ -847,7 +847,7 @@ function draw(){
     ctx.fillText('👆 Tap to drop!', canvas.width/2, canvas.height/2 - 10);
     ctx.restore();
     // Pulse the canvas CSS border too
-    canvas.style.borderColor=rgba(255,${Math.floor(60+idlePulse*40)},${Math.floor(60+idlePulse*40)},1);
+    canvas.style.borderColor=`rgba(255,${Math.floor(60+idlePulse*40)},${Math.floor(60+idlePulse*40)},1)`;
   } else {
     canvas.style.borderColor='#ffb347';
   }
