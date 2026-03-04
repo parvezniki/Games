@@ -1,70 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purrfect Merge Game</title>
+    <title>Purrfect Merge</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
             font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            text-align: center;
         }
-        canvas {
-            border: 2px solid #ccc;
-            background: #fff;
+        .animal {
+            display: inline-block;
+            margin: 10px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <h1>Purrfect Merge Game</h1>
+    <div id="gameArea">
+        <div class="animal" data-animal="cat"><img src="cat.png" alt="Cat"></div>
+        <div class="animal" data-animal="dog"><img src="dog.png" alt="Dog"></div>
+        <div class="animal" data-animal="rabbit"><img src="rabbit.png" alt="Rabbit"></div>
+    </div>
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-        // Game variables
         let score = 0;
-        let gameObjects = [];
+        let mergeableAnimals = [];
 
-        // Power-up system
-        class PowerUp {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = 20;
-                this.active = true;
-            }
-            draw() {
-                ctx.fillStyle = 'yellow';
-                ctx.fillRect(this.x, this.y, this.size, this.size);
-            }
-        }
+        const mergeAnimals = (animal1, animal2) => {
+            // Logic for merging animals
+            let newAnimal = `merged-${animal1}-${animal2}`;
+            return newAnimal;
+        };
 
-        // Particle effects
-        function createParticles(x, y) {
-            for (let i = 0; i < 30; i++) {
-                // Create particle effects
-            }
-        }
-
-        // Game logic
-        function updateGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Update game objects
-            gameObjects.forEach(object => object.update());
-            // Draw game objects
-            gameObjects.forEach(object => object.draw());
-            // Update score display
-            ctx.fillStyle = 'black';
-            ctx.fillText('Score: ' + score, 10, 20);
-            requestAnimationFrame(updateGame);
-        }
-
-        updateGame();
+        document.querySelectorAll('.animal').forEach(animal => {
+            animal.addEventListener('click', () => {
+                mergeableAnimals.push(animal.dataset.animal);
+                if (mergeableAnimals.length == 2) {
+                    let newAnimal = mergeAnimals(mergeableAnimals[0], mergeableAnimals[1]);
+                    score += 10;
+                    alert(`You merged a ${mergeableAnimals[0]} and a ${mergeableAnimals[1]} to create ${newAnimal}!`);
+                    mergeableAnimals = [];
+                }
+            });
+        });
     </script>
 </body>
 </html>
