@@ -185,8 +185,6 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
   </button>
 </div>
 
-<div class="evolution-bar" id="evoBar"></div>
-
 <div class="credit" style="margin-top:4px;font-size:1.1rem;font-weight:800;color:#4a90d9;letter-spacing:0.5px;font-family:'Nunito',sans-serif;">Developed by: Ko9 Games</div>
 
 <!-- Start overlay -->
@@ -232,18 +230,6 @@ const ANIMALS = [
   {emoji:'🐉', name:'Dragon',     radius:167, points:70 },
 ];
 
-// Build evo bar
-const evoBar = document.getElementById('evoBar');
-ANIMALS.forEach((a,i)=>{
-  const d=document.createElement('div'); d.className='evo-item';
-  d.innerHTML=`<span class="evo-emoji">${a.emoji}</span><span>${a.name}</span>`;
-  evoBar.appendChild(d);
-  if(i<ANIMALS.length-1){
-    const arr=document.createElement('div'); arr.className='evo-item';
-    arr.innerHTML=`<span class="evo-emoji" style="font-size:0.55rem">→</span>`;
-    evoBar.appendChild(arr);
-  }
-});
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -270,14 +256,12 @@ function resizeCanvas() {
   const h1El = document.querySelector('h1');
   const scoreEl = document.querySelector('.score-area');
   const puEl = document.querySelector('.powerups');
-  const evoEl = document.querySelector('.evolution-bar');
   const creditEl = document.querySelector('.credit');
 
-  // Temporarily shrink canvas to measure surrounding UI
   canvas.style.display = 'none';
   const uiH = (h1El?.offsetHeight||0) + (scoreEl?.offsetHeight||0) +
-               (puEl?.offsetHeight||0) + (evoEl?.offsetHeight||0) +
-               (creditEl?.offsetHeight||0) + 60; // gaps/padding
+               (puEl?.offsetHeight||0) +
+               (creditEl?.offsetHeight||0) + 60;
   canvas.style.display = 'block';
 
   const maxH = Math.max(200, vh - uiH);
