@@ -1,10 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Ko9 Merger Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purrfect Merge Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #ccc;
+            background: #fff;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Ko9 Merger Game!</h1>
-    <p>Here you will find the instructions and gameplay.</p>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Game variables
+        let score = 0;
+        let gameObjects = [];
+
+        // Power-up system
+        class PowerUp {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = 20;
+                this.active = true;
+            }
+            draw() {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+        // Particle effects
+        function createParticles(x, y) {
+            for (let i = 0; i < 30; i++) {
+                // Create particle effects
+            }
+        }
+
+        // Game logic
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Update game objects
+            gameObjects.forEach(object => object.update());
+            // Draw game objects
+            gameObjects.forEach(object => object.draw());
+            // Update score display
+            ctx.fillStyle = 'black';
+            ctx.fillText('Score: ' + score, 10, 20);
+            requestAnimationFrame(updateGame);
+        }
+
+        updateGame();
+    </script>
 </body>
 </html>
