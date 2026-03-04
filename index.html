@@ -579,7 +579,7 @@ function updateUI(){
 function drawNextCanvas(){
   const nw=nextCanvas.width, nh=nextCanvas.height;
   nctx.clearRect(0,0,nw,nh);
-  if(!gameActive) return;
+  if(!gameActive || waitingForWinTap) return;
   const a=ANIMALS[nextIdx];
   const cx=nw/2, cy=nh/2;
   const r=Math.floor(Math.min(nw,nh)/2) - 3; // always fits with 3px padding
@@ -888,7 +888,7 @@ function update(){
   if(idleWarning) idlePulse = (Math.sin(performance.now()*0.006)+1)/2;
 
   // Game over: box truly full — a settled ball is stuck above y=18 (near very top)
-  if(gameActive && !shaking && balls.some(b=>b.age>60 && b.y < b.r * 0.8)) gameOver();
+  if(gameActive && !shaking && balls.some(b=>b.age>60 && b.y - b.r < -b.r * 0.2)) gameOver();
 }
 
 // ── DRAW ──────────────────────────────────────────────────────────────
@@ -964,8 +964,8 @@ function draw(){
   // Balls
   for(const b of balls) drawBall(b, pickMode&&hoverBall&&b.id===hoverBall.id);
 
-  // Drop preview (only when not in pick mode)
-  if(gameActive&&!dropping&&!pickMode){
+  // Drop preview (only when not in pick mode or waiting for win tap)
+  if(gameActive&&!dropping&&!pickMode&&!waitingForWinTap){
     const a=ANIMALS[currentIdx];
     const px=Math.max(WALL_LEFT+a.radius,Math.min(WALL_RIGHT-a.radius,dropX));
     ctx.setLineDash([4,5]);
@@ -1023,7 +1023,7 @@ function draw(){
     ctx.textAlign='center';
     ctx.shadowColor='rgba(0,0,0,0.3)';
     ctx.shadowBlur=6;
-    ctx.fillText('🐉 Tap to celebrate!', canvas.width/2, canvas.height/2);
+    ctx.fillText('🐉 Tap to celebrate!', canvas.width/2, 40);
     ctx.restore();
   }
 
@@ -1059,6 +1059,49 @@ function waitForWinTap(){
   });
   playWin();
   showToast('🐉 Tap anywhere to celebrate!');
+
+  // Blast remaining animals one by one with delay
+  const nonDragons = balls.filter(b => b.idx !== ANIMALS.length - 1);
+  nonDragons.sort(() => Math.random() - 0.5);
+
+  let blastCount = 0;
+  function blastNext() {
+    // Always pick from live balls array, not stale snapshot
+    const remaining = balls.filter(b => b.idx !== ANIMALS.length - 1);
+    if(remaining.length === 0){
+      // All blasted — move dragon to center
+      const totalBlastTime = 400;
+      setTimeout(() => {
+        const dragon = balls.find(b => b.idx === ANIMALS.length - 1);
+        if(!dragon) return;
+        const targetX = canvas.width / 2;
+        const targetY = canvas.height / 2;
+        const steps = 40;
+        let step = 0;
+        const startX = dragon.x;
+        const startY = dragon.y;
+        const moveInterval = setInterval(() => {
+          const t = step / steps;
+          const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+          dragon.x = startX + (targetX - startX) * ease;
+          dragon.y = startY + (targetY - startY) * ease;
+          dragon.vx = 0; dragon.vy = 0;
+          step++;
+          if(step >= steps){ dragon.x = targetX; dragon.y = targetY; clearInterval(moveInterval); }
+        }, 16);
+      }, totalBlastTime);
+      return;
+    }
+    // Pick a random one from remaining
+    const target = remaining[Math.floor(Math.random() * remaining.length)];
+    spawnBurst(target.x, target.y, ANIMALS[target.idx].emoji, false);
+    playMerge(target.idx);
+    balls = balls.filter(x => x.id !== target.id);
+    blastCount++;
+    setTimeout(blastNext, 250);
+  }
+
+  setTimeout(blastNext, 300);
 }
 
 function youWin(){
