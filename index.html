@@ -160,6 +160,8 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
     <canvas id="nextCanvas" width="50" height="50"></canvas>
   </div>
   <button id="couponBtn" onclick="openCoupon()" style="background:none;border:1.5px solid #a29bfe;border-radius:20px;padding:4px 10px;font-size:0.62rem;font-weight:800;color:#6c5ce7;font-family:'Nunito',sans-serif;cursor:pointer;letter-spacing:0.5px;box-shadow:0 2px 0 #a29bfe;">🎟️</button>
+  <button id="themeBtn" onclick="openTheme()" style="background:none;border:none;padding:4px 6px;font-size:1.4rem;cursor:pointer;" title="Change Theme">🎨</button>
+  <button id="muteBtn" onclick="toggleMute()" style="background:none;border:none;padding:4px 6px;font-size:1.4rem;cursor:pointer;">🔊</button>
 </div>
 
 <canvas id="gameCanvas" width="410" height="500"></canvas>
@@ -194,6 +196,36 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
   </button>
 </div>
 
+<!-- Theme Modal -->
+
+<div id="themeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(5px);">
+  <div style="background:white;border-radius:22px;padding:24px 26px;text-align:center;box-shadow:0 10px 0 #fdcb6e,0 18px 40px rgba(0,0,0,0.3);border:3px solid #fdcb6e;max-width:300px;width:85vw;">
+    <h3 style="font-family:'Fredoka One',cursive;font-size:1.5rem;color:#e17055;margin-bottom:14px;">🎨 Choose Theme</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="theme-opt" onclick="setTheme(0)" id="topt-0">🐹 Animals</button>
+      <button class="theme-opt" onclick="setTheme(1)" id="topt-1">🌷 Flowers</button>
+      <button class="theme-opt" onclick="setTheme(2)" id="topt-2">🍒 Fruits</button>
+      <button class="theme-opt" onclick="setTheme(3)" id="topt-3">🍬 Sweets</button>
+      <button class="theme-opt" onclick="setTheme(4)" id="topt-4">⚽️ Sports</button>
+    </div>
+    <button class="btn" style="margin-top:14px;background:linear-gradient(180deg,#fdcb6e,#e17055);box-shadow:0 5px 0 #b85c00;" onclick="closeTheme()">Close</button>
+  </div>
+</div>
+
+<!-- Theme button styles -->
+
+<style>
+  .theme-opt {
+    width:100%; padding:10px; border-radius:14px;
+    border:2.5px solid #dfe6e9; background:#f8f9fa;
+    font-family:'Nunito',sans-serif; font-size:1rem; font-weight:800;
+    cursor:pointer; transition:all 0.15s;
+  }
+  .theme-opt.active {
+    border-color:#e17055; background:#fff3f0; color:#e17055;
+  }
+</style>
+
 <!-- Coupon Modal -->
 
 <div id="couponModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(5px);">
@@ -221,7 +253,7 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 ```
 <!-- Animals ring top -->
-<div style="display:flex;justify-content:center;gap:2px;margin-bottom:6px;flex-wrap:wrap;">
+<div class="theme-emoji-row" style="display:flex;justify-content:center;gap:2px;margin-bottom:6px;flex-wrap:wrap;">
   <span style="font-size:1.9rem">🐹</span>
   <span style="font-size:1.9rem">🐱</span>
   <span style="font-size:1.9rem">🐶</span>
@@ -239,7 +271,7 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 <button class="btn" onclick="startGame()">Start Playing!</button>
 
 <!-- Animals ring bottom -->
-<div style="display:flex;justify-content:center;gap:2px;margin-top:10px;flex-wrap:wrap;">
+<div class="theme-emoji-row" style="display:flex;justify-content:center;gap:2px;margin-top:10px;flex-wrap:wrap;">
   <span style="font-size:1.9rem">🐨</span>
   <span style="font-size:1.9rem">🐼</span>
   <span style="font-size:1.9rem">🐯</span>
@@ -255,7 +287,7 @@ opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:300; white-spac
 
 <div id="overlay3" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(5px);">
   <div class="overlay-box" style="border-color:#FFD700;box-shadow:0 10px 0 #e6ac00,0 18px 40px rgba(0,0,0,0.3);">
-    <div style="font-size:7rem;line-height:1;margin-bottom:4px">🐉</div>
+    <div id="winEmoji" style="font-size:7rem;line-height:1;margin-bottom:4px">🐉</div>
     <h2 style="color:#e6ac00;font-size:2.8rem;margin-bottom:4px">You Win!</h2>
     <p style="font-size:1rem;color:#888;margin-bottom:4px">You reached the Dragon! 🎉</p>
     <p style="font-size:0.85rem;color:#aaa;margin-bottom:2px">Your Score</p>
@@ -294,6 +326,74 @@ const ANIMALS = [
   {emoji:'🐉', name:'Dragon',  radius:133, points:70},
 ];
 
+
+// ── THEMES ────────────────────────────────────────────────────────────
+const THEMES = [
+  {
+    name:'Animals', icon:'🐹',
+    items:['🐹','🐱','🐶','🐰','🦊','🐻','🐨','🐼','🐯','🦁','🐉'],
+    title:'🐱 Purrfect Merge!', winEmoji:'🐉',
+    topRow:['🐹','🐱','🐶','🐰','🦊','🐻'], botRow:['🐨','🐼','🐯','🦁','🐉']
+  },
+  {
+    name:'Flowers', icon:'🌷',
+    items:['🌱','🌿','☘️','🍀','🌷','🌹','🌼','🌸','🌺','🌻','💐'],
+    title:'🌸 Blossom Merge!', winEmoji:'💐',
+    topRow:['🌱','🌿','☘️','🍀','🌷','🌹'], botRow:['🌼','🌸','🌺','🌻','💐']
+  },
+  {
+    name:'Fruits', icon:'🍒',
+    items:['🍒','🍓','🍋','🍑','🍅','🍊','🍏','🍎','🍐','🍇','🥭'],
+    title:'🍎 Fruity Merge!', winEmoji:'🥭',
+    topRow:['🍒','🍓','🍋','🍑','🍅','🍊'], botRow:['🍏','🍎','🍐','🍇','🥭']
+  },
+  {
+    name:'Sweets', icon:'🍬',
+    items:['🍬','🍭','🍪','🧁','🥧','🍩','🍦','🥮','🍨','🍧','🎂'],
+    title:'🍭 Sweet Merge!', winEmoji:'🎂',
+    topRow:['🍬','🍭','🍪','🧁','🥧','🍩'], botRow:['🍦','🥮','🍨','🍧','🎂']
+  },
+  {
+    name:'Sports', icon:'⚽️',
+    items:['🌕','🪀','🎱','🎾','⚾️','🥎','🏈','🏉','⚽️','🏀','🥳'],
+    title:'🏆 Sports Merge!', winEmoji:'🥳',
+    topRow:['🌕','🪀','🎱','🎾','⚾️','🥎'], botRow:['🏈','🏉','⚽️','🏀','🥳']
+  }
+];
+
+let currentTheme = 0;
+
+function applyTheme(idx){
+  const t = THEMES[idx];
+  // Update ANIMALS emojis and names
+  ANIMALS.forEach((a,i) => { a.emoji = t.items[i]; a.name = t.name+' '+(i+1); });
+  // Update title
+  document.querySelector('h1').textContent = t.title;
+  // Update welcome screen rows
+  const rows = document.querySelectorAll('.theme-emoji-row');
+  if(rows.length >= 2){
+    rows[0].innerHTML = t.topRow.map(e=>`<span style="font-size:1.9rem">${e}</span>`).join('');
+    rows[1].innerHTML = t.botRow.map(e=>`<span style="font-size:1.9rem">${e}</span>`).join('');
+  }
+  // Update win overlay dragon emoji
+  const winEmojiEl = document.getElementById('winEmoji');
+  if(winEmojiEl) winEmojiEl.textContent = t.winEmoji;
+  // Update active button
+  document.querySelectorAll('.theme-opt').forEach((b,i)=>b.classList.toggle('active', i===idx));
+  currentTheme = idx;
+}
+
+function openTheme(){
+  document.getElementById('themeModal').style.display='flex';
+}
+function closeTheme(){
+  document.getElementById('themeModal').style.display='none';
+}
+function setTheme(idx){
+  applyTheme(idx);
+  closeTheme();
+  showToast(`${THEMES[idx].icon} ${THEMES[idx].name} theme applied!`);
+}
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -354,11 +454,20 @@ const WALL_LEFT=4;
 
 // ── AUDIO ─────────────────────────────────────────────────────────────
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const masterGain = audioCtx.createGain();
+masterGain.connect(audioCtx.destination);
+let isMuted = false;
+
+function toggleMute(){
+  isMuted = !isMuted;
+  masterGain.gain.setValueAtTime(isMuted ? 0 : 1, audioCtx.currentTime);
+  document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
+}
 
 function playDrop() {
   const o = audioCtx.createOscillator();
   const g = audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
+  o.connect(g); g.connect(masterGain);
   o.type = 'sine';
   o.frequency.setValueAtTime(520, audioCtx.currentTime);
   o.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.12);
@@ -378,7 +487,7 @@ function playMerge(tier) {
     const lfo = audioCtx.createOscillator();
     const lfoGain = audioCtx.createGain();
     lfo.connect(lfoGain); lfoGain.connect(o.frequency);
-    o.connect(g); g.connect(audioCtx.destination);
+    o.connect(g); g.connect(masterGain);
     o.type = 'sine';
     lfo.type = 'sine';
     lfo.frequency.setValueAtTime(6 + i * 3, now);
@@ -397,7 +506,7 @@ function playMerge(tier) {
   // 2. Soft "thump" sub — low punch when they collide
   const sub = audioCtx.createOscillator();
   const subG = audioCtx.createGain();
-  sub.connect(subG); subG.connect(audioCtx.destination);
+  sub.connect(subG); subG.connect(masterGain);
   sub.type = 'sine';
   sub.frequency.setValueAtTime(baseFreq * 0.5, now);
   sub.frequency.exponentialRampToValueAtTime(baseFreq * 0.25, now + 0.18);
@@ -408,7 +517,7 @@ function playMerge(tier) {
   // 3. Sparkle overtone — brief high shimmer on merge
   const shimmer = audioCtx.createOscillator();
   const shimG = audioCtx.createGain();
-  shimmer.connect(shimG); shimG.connect(audioCtx.destination);
+  shimmer.connect(shimG); shimG.connect(masterGain);
   shimmer.type = 'triangle';
   shimmer.frequency.setValueAtTime(baseFreq * 4, now + 0.05);
   shimmer.frequency.exponentialRampToValueAtTime(baseFreq * 6, now + 0.2);
@@ -429,7 +538,7 @@ function playMerge(tier) {
   noiseFilter.type = 'bandpass';
   noiseFilter.frequency.setValueAtTime(800 + tier * 120, now);
   noiseFilter.Q.setValueAtTime(1.5, now);
-  noise.connect(noiseFilter); noiseFilter.connect(noiseG); noiseG.connect(audioCtx.destination);
+  noise.connect(noiseFilter); noiseFilter.connect(noiseG); noiseG.connect(masterGain);
   noiseG.gain.setValueAtTime(0.18, now);
   noiseG.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
   noise.start(now); noise.stop(now + 0.04);
@@ -445,7 +554,7 @@ function playPowerUp(type) {
     // Soft "select" blip
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
+    o.connect(g); g.connect(masterGain);
     o.type = 'sine';
     o.frequency.setValueAtTime(880, now);
     o.frequency.setValueAtTime(1100, now + 0.07);
@@ -457,7 +566,7 @@ function playPowerUp(type) {
     [80, 120, 160].forEach((f, i) => {
       const o = audioCtx.createOscillator();
       const g = audioCtx.createGain();
-      o.connect(g); g.connect(audioCtx.destination);
+      o.connect(g); g.connect(masterGain);
       o.type = 'sawtooth';
       o.frequency.setValueAtTime(f, now + i*0.03);
       o.frequency.exponentialRampToValueAtTime(f*0.4, now + 0.3);
@@ -469,7 +578,7 @@ function playPowerUp(type) {
     // Sweeping whoosh upward
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
+    o.connect(g); g.connect(masterGain);
     o.type = 'triangle';
     o.frequency.setValueAtTime(300, now);
     o.frequency.exponentialRampToValueAtTime(1200, now + 0.25);
@@ -480,7 +589,7 @@ function playPowerUp(type) {
     // Deep thud + crackle
     const sub = audioCtx.createOscillator();
     const subG = audioCtx.createGain();
-    sub.connect(subG); subG.connect(audioCtx.destination);
+    sub.connect(subG); subG.connect(masterGain);
     sub.type = 'sine';
     sub.frequency.setValueAtTime(120, now);
     sub.frequency.exponentialRampToValueAtTime(30, now + 0.3);
@@ -496,7 +605,7 @@ function playPowerUp(type) {
     const nf = audioCtx.createBiquadFilter();
     const ng = audioCtx.createGain();
     ns.buffer = buf; nf.type = 'lowpass'; nf.frequency.value = 2000;
-    ns.connect(nf); nf.connect(ng); ng.connect(audioCtx.destination);
+    ns.connect(nf); nf.connect(ng); ng.connect(masterGain);
     ng.gain.setValueAtTime(0.25, now); ng.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
     ns.start(now); ns.stop(now + 0.15);
   }
@@ -509,7 +618,7 @@ function playWin() {
   notes.forEach((freq, i) => {
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
+    o.connect(g); g.connect(masterGain);
     o.type = 'triangle';
     o.frequency.setValueAtTime(freq, now + i*0.13);
     g.gain.setValueAtTime(0, now + i*0.13);
@@ -521,7 +630,7 @@ function playWin() {
   [1047, 1319, 1568].forEach((freq, i) => {
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
+    o.connect(g); g.connect(masterGain);
     o.type = 'sine';
     o.frequency.setValueAtTime(freq, now + 0.5 + i*0.1);
     g.gain.setValueAtTime(0.08, now + 0.5 + i*0.1);
@@ -858,6 +967,8 @@ function update(){
       continue;
     }
     b.vy+=GRAVITY; b.vx*=FRICTION; b.x+=b.vx; b.y+=b.vy;
+    // Prevent high jumps during shake
+    if(shaking && b.vy < -6) b.vy = -6;
     b.age++; b.scale=Math.min(1,b.scale+0.08);
     const onGround = b.y+b.r >= FLOOR-1;
     const settled = Math.abs(b.vy)<0.8 && Math.abs(b.vx)<0.8 && b.age>30;
@@ -1154,7 +1265,7 @@ function activateUpgrade(){
   const now = audioCtx.currentTime;
   [400, 600, 900, 1200].forEach((f, i) => {
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
+    o.connect(g); g.connect(masterGain);
     o.type = 'triangle';
     o.frequency.setValueAtTime(f, now + i*0.07);
     g.gain.setValueAtTime(0.12, now + i*0.07);
@@ -1227,7 +1338,7 @@ function playGameOver() {
   notes.forEach((freq, i) => {
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
+    o.connect(g); g.connect(masterGain);
     o.type = 'sawtooth';
     o.frequency.setValueAtTime(freq, now + i*0.18);
     o.frequency.exponentialRampToValueAtTime(freq*0.88, now + i*0.18 + 0.16);
@@ -1239,7 +1350,7 @@ function playGameOver() {
   // Final low thud
   const sub = audioCtx.createOscillator();
   const subG = audioCtx.createGain();
-  sub.connect(subG); subG.connect(audioCtx.destination);
+  sub.connect(subG); subG.connect(masterGain);
   sub.type = 'sine';
   sub.frequency.setValueAtTime(100, now + 0.75);
   sub.frequency.exponentialRampToValueAtTime(40, now + 1.1);
@@ -1286,6 +1397,7 @@ function launchConfetti(){
 function loop(){ if(gameActive)update(); draw(); drawNextCanvas(); requestAnimationFrame(loop); }
 
 updatePuUI();
+applyTheme(0);
 loop();
 </script>
 
